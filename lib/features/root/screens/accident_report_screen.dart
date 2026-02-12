@@ -262,134 +262,139 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
         }
       },
       builder: (context, state) {
-        return Scaffold(
-          backgroundColor: Colors.grey[50],
-          appBar: AppBar(
-            backgroundColor: Colors.red[700],
-            foregroundColor: Colors.white,
-            elevation: 0,
-            title: Text(
-              'Accident Report',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            backgroundColor: Colors.grey[50],
+            appBar: AppBar(
+              backgroundColor: Colors.red[700],
+              foregroundColor: Colors.white,
+              elevation: 0,
+              title: Text(
+                'Accident Report',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
             ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          body: Form(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Section
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.red[700],
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(24),
-                        bottomRight: Radius.circular(24),
+            body: Form(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Section
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.red[700],
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(24),
+                          bottomRight: Radius.circular(24),
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.car_crash,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
                               ),
-                              child: Icon(
-                                Icons.car_crash,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Report an Accident',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Help is on the way',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.9,
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Report an Accident',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    Text(
+                                      'Help is on the way',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.9,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ).animate().fadeIn(duration: 400.ms).slideY(),
+
+                    const SizedBox(height: 20),
+
+                    // Form Content
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Step 1: Photo
+                          _buildSectionHeader(
+                            number: '1',
+                            title: 'Take Photo',
+                            subtitle: 'Capture the accident scene',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildPhotoSection(),
+
+                          const SizedBox(height: 24),
+
+                          // Step 2: Location
+                          _buildSectionHeader(
+                            number: '2',
+                            title: 'Location',
+                            subtitle: 'Your current position',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildLocationSection(),
+
+                          const SizedBox(height: 24),
+
+                          // Step 3: Description
+                          _buildSectionHeader(
+                            number: '3',
+                            title: 'Description',
+                            subtitle: 'What happened?',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildDescriptionSection(context, state),
+
+                          const SizedBox(height: 32),
+
+                          // Submit Button
+                          _buildSubmitButton(),
+
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
-                  ).animate().fadeIn(duration: 400.ms).slideY(),
-
-                  const SizedBox(height: 20),
-
-                  // Form Content
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Step 1: Photo
-                        _buildSectionHeader(
-                          number: '1',
-                          title: 'Take Photo',
-                          subtitle: 'Capture the accident scene',
-                        ),
-                        const SizedBox(height: 12),
-                        _buildPhotoSection(),
-
-                        const SizedBox(height: 24),
-
-                        // Step 2: Location
-                        _buildSectionHeader(
-                          number: '2',
-                          title: 'Location',
-                          subtitle: 'Your current position',
-                        ),
-                        const SizedBox(height: 12),
-                        _buildLocationSection(),
-
-                        const SizedBox(height: 24),
-
-                        // Step 3: Description
-                        _buildSectionHeader(
-                          number: '3',
-                          title: 'Description',
-                          subtitle: 'What happened?',
-                        ),
-                        const SizedBox(height: 12),
-                        _buildDescriptionSection(context, state),
-
-                        const SizedBox(height: 32),
-
-                        // Submit Button
-                        _buildSubmitButton(),
-
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -808,8 +813,12 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
         controller: _descriptionController,
         maxLines: 6,
         maxLength: 500,
+        textInputAction: TextInputAction.done,
         onChanged: (value) {
           context.read<AccidentReportBloc>().add(DescriptionChanged(value));
+        },
+        onEditingComplete: () {
+          FocusScope.of(context).unfocus();
         },
         decoration: InputDecoration(
           hintText:

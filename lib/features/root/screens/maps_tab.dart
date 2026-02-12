@@ -308,14 +308,14 @@ class _MapsTabState extends State<MapsTab> {
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                       ),
                       Text(
                         'Lianga, Surigao del Sur',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.8),
+                          color: Colors.black.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -446,7 +446,7 @@ class _MapsTabState extends State<MapsTab> {
                     color: Colors.grey[800],
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 24),
                 GestureDetector(
                   onTap: () => setState(() => _showLegend = false),
                   child: Icon(Icons.close, size: 16, color: Colors.grey[600]),
