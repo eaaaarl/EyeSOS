@@ -3,6 +3,7 @@ import 'package:eyesos/features/auth/bloc/session_state.dart';
 import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
 import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_state.dart';
+import 'package:eyesos/features/root/models/accidents_reports_model.dart';
 import 'package:eyesos/features/root/widgets/home/emergency_button_section.dart';
 import 'package:eyesos/features/root/widgets/home/guest_notice_banner.dart';
 import 'package:eyesos/features/root/widgets/home/guest_signin_card.dart';
@@ -73,7 +74,7 @@ class _HomeTabState extends State<HomeTab> {
 
   void _showReportDetails({
     required BuildContext context,
-    required dynamic report,
+    required AccidentReport report,
   }) {
     showModalBottomSheet(
       context: context,
@@ -89,7 +90,7 @@ class _HomeTabState extends State<HomeTab> {
           reportNumber: report.reportNumber,
           location: report.locationAddress,
           createdAt: report.createdAt,
-          notes: report.reporterNotes,
+          notes: report.reporterNotes!,
           imageUrls: report.imageUrls,
         ),
       ),

@@ -21,7 +21,6 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToNext() async {
-    // ✅ Wait for minimum splash duration
     await Future.delayed(const Duration(milliseconds: 2000));
 
     if (!mounted) return;
@@ -35,7 +34,6 @@ class _SplashScreenState extends State<SplashScreen> {
       nextScreen = const WelcomeScreen();
     }
 
-    // ✅ Fade transition (smoother than slide)
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(

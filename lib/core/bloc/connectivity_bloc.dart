@@ -30,11 +30,11 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityStatus> {
 
   // Debounce settings - more lenient for better UX
   static const Duration _debounceDisconnect = Duration(
-    seconds: 2,
-  ); // Wait 2s before showing "disconnected"
+    seconds: 10,
+  ); // Wait 10s before showing "disconnected"
   static const Duration _debounceConnect = Duration(
-    seconds: 1,
-  ); // Wait 1s before showing "connected"
+    seconds: 5,
+  ); // Wait 5s before showing "connected"
   static const int _requiredDisconnectsBeforeAlert =
       1; // Need 1 disconnect signal before alerting
 
