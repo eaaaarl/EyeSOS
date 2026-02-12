@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
 import 'package:eyesos/features/root/widgets/accident_report/control_button.dart';
 import 'package:eyesos/features/root/widgets/accident_report/map_skeleton.dart';
@@ -30,6 +31,10 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
   String _selectedMapStyle = 'standard';
   bool _hasRequestedLocationOnce = false;
 
+  // Timer for debouncing radius updates
+  Timer? _radiusUpdateTimer;
+
+  // Mock accident data - can be easily replaced later
   final List<WeightedLatLng> _accidentData = [
     // --- LIANGA POBLACION (Red Hot Center) ---
     WeightedLatLng(const LatLng(8.6324, 126.0945), 1.0), // Town Center
@@ -40,6 +45,7 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
     WeightedLatLng(const LatLng(8.6770, 126.1376), 1.0), // Diatagon Proper
     WeightedLatLng(const LatLng(8.6780, 126.1390), 0.7),
     WeightedLatLng(const LatLng(8.6755, 126.1360), 0.8),
+
     // --- GANAYON & ST. CHRISTINE (The "Orange" Bridge) ---
     WeightedLatLng(const LatLng(8.6545, 126.1009), 0.8), // Ganayon
     WeightedLatLng(const LatLng(8.6450, 126.0980), 0.6), // Connecting Road
@@ -64,6 +70,8 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+
+      // Request location data
       if (!_hasRequestedLocationOnce) {
         context.read<LocationBloc>().add(FetchLocationRequested());
         _hasRequestedLocationOnce = true;
@@ -73,10 +81,107 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
+    _radiusUpdateTimer?.cancel();
     _radiusNotifier.dispose();
     _mapController.dispose();
     super.dispose();
   }
+
+  void _handlePositionChanged(MapPosition position, bool hasGesture) {
+    // Debounce radius updates to avoid excessive rebuilds
+    _radiusUpdateTimer?.cancel();
+    _radiusUpdateTimer = Timer(const Duration(milliseconds: 150), () {
+      if (!mounted) return;
+
+      double newRadius = 800 / position.zoom!;
+      if (newRadius < 20) newRadius = 20;
+      if (newRadius > 150) newRadius = 150;
+
+      // Round to reduce unnecessary updates
+      final roundedRadius = newRadius.roundToDouble();
+
+      // Only update if the change is significant (> 1.0)
+      if ((roundedRadius - _radiusNotifier.value).abs() > 1.0) {
+        _radiusNotifier.value = roundedRadius;
+      }
+    });
+  }
+
+  void _centerOnLocation(LocationState state) {
+    if (state is LocationLoaded && _isMapReady) {
+      _mapController.move(
+        LatLng(state.location.latitude, state.location.longitude),
+        15.0,
+      );
+    }
+  }
+
+  void _showLocationError(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.red[700],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        action: SnackBarAction(
+          label: 'Retry',
+          textColor: Colors.white,
+          onPressed: () {
+            context.read<LocationBloc>().add(
+              FetchLocationRequested(forceRefresh: true),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /* Widget _buildLocationLoadingOverlay() {
+    return Positioned(
+      top: 100,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.black87,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              SizedBox(width: 12),
+              Text(
+                'Getting your location...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  } */
 
   @override
   Widget build(BuildContext context) {
@@ -85,131 +190,36 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
     return BlocConsumer<LocationBloc, LocationState>(
       listener: (context, state) {
         if (state is LocationLoaded && _isMapReady) {
-          _mapController.move(
-            LatLng(state.location.latitude, state.location.longitude),
-            15.0,
-          );
+          _centerOnLocation(state);
         } else if (state is LocationError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(state.message)),
-                ],
-              ),
-              backgroundColor: Colors.red[700],
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              action: SnackBarAction(
-                label: 'Retry',
-                textColor: Colors.white,
-                onPressed: () {
-                  context.read<LocationBloc>().add(
-                    FetchLocationRequested(forceRefresh: true),
-                  );
-                },
-              ),
-            ),
-          );
+          _showLocationError(state.message);
         }
       },
-
       builder: (context, locationState) {
         return BlocBuilder<ConnectivityBloc, ConnectivityStatus>(
           builder: (context, connectivityState) {
             if (connectivityState == ConnectivityStatus.disconnected) {
               return const NoInternetFallback();
             }
+
             return Scaffold(
               body: Stack(
                 children: [
                   // Map
-                  FlutterMap(
-                    mapController: _mapController,
-                    options: MapOptions(
-                      initialCenter: const LatLng(8.6327, 126.0945),
-                      initialZoom: 12.0,
-                      onMapReady: () {
-                        if (!mounted) return;
-                        setState(() => _isMapReady = true);
-                      },
-                      onPositionChanged: (camera, hasGesture) {
-                        double newRadius = 800 / camera.zoom!;
-                        if (newRadius < 20) newRadius = 20;
-                        if (newRadius > 150) newRadius = 150;
-
-                        _radiusNotifier.value = newRadius;
-                      },
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: _mapStyles[_selectedMapStyle]!,
-                        userAgentPackageName: dotenv.env['PACKAGE_NAME']!,
-                      ),
-                      if (_showHeatmap && _accidentData.isNotEmpty)
-                        ValueListenableBuilder<double>(
-                          valueListenable: _radiusNotifier,
-                          builder: (context, radius, _) {
-                            return HeatMapLayer(
-                              heatMapDataSource: InMemoryHeatMapDataSource(
-                                data: _accidentData,
-                              ),
-                              heatMapOptions: HeatMapOptions(
-                                radius: radius,
-                                blurFactor: 10.0,
-                                gradient: {
-                                  0.2: Colors.blue,
-                                  0.5: Colors.yellow,
-                                  0.8: Colors.red,
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      MarkerLayer(
-                        markers: [
-                          if (locationState is LocationLoaded)
-                            Marker(
-                              point: LatLng(
-                                locationState.location.latitude,
-                                locationState.location.longitude,
-                              ),
-                              width: 60,
-                              height: 60,
-                              child: _BuildUserLocationMarker(),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  _buildMap(locationState),
 
                   // Loading skeleton
                   if (!_isMapReady) const MapSkeleton(),
 
+                  /*   // Loading indicator for location
+                  if (locationState is LocationLoading && _isMapReady)
+                    _buildLocationLoadingOverlay(), */
+
                   // UI Controls (only show when map is ready)
                   if (_isMapReady) ...[
-                    TopBar(
-                      selectedMapStyle: _selectedMapStyle,
-                      onMapStyleChanged: (value) =>
-                          setState(() => _selectedMapStyle = value),
-                    ),
-                    if (_showLegend)
-                      LegendCard(
-                        onClose: () => setState(() => _showLegend = false),
-                      ),
-                    _BuildControlButtons(
-                      mapController: _mapController,
-                      state: locationState,
-                      showLegend: _showLegend,
-                      showHeatmap: _showHeatmap,
-                      onLegendClosed: () => setState(() => _showLegend = true),
-                      onToggleHeatmap: () =>
-                          setState(() => _showHeatmap = !_showHeatmap),
-                    ),
+                    _buildTopBar(),
+                    if (_showLegend) _buildLegend(),
+                    _buildControlButtons(locationState),
                   ],
                 ],
               ),
@@ -219,9 +229,100 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
       },
     );
   }
+
+  Widget _buildMap(LocationState locationState) {
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: const LatLng(8.6327, 126.0945),
+        initialZoom: 12.0,
+        onMapReady: () {
+          if (!mounted) return;
+          setState(() => _isMapReady = true);
+        },
+        onPositionChanged: _handlePositionChanged,
+      ),
+      children: [
+        // Tile Layer
+        TileLayer(
+          urlTemplate: _mapStyles[_selectedMapStyle]!,
+          userAgentPackageName: dotenv.env['PACKAGE_NAME']!,
+        ),
+
+        // Heatmap Layer
+        if (_showHeatmap && _accidentData.isNotEmpty && _isMapReady)
+          ValueListenableBuilder<double>(
+            valueListenable: _radiusNotifier,
+            builder: (context, radius, _) {
+              return HeatMapLayer(
+                heatMapDataSource: InMemoryHeatMapDataSource(
+                  data: _accidentData,
+                ),
+                heatMapOptions: HeatMapOptions(
+                  radius: radius,
+                  blurFactor: 10.0,
+                  gradient: {
+                    0.2: Colors.blue,
+                    0.5: Colors.yellow,
+                    0.8: Colors.red,
+                  },
+                ),
+              );
+            },
+          ),
+
+        // User Location Marker
+        MarkerLayer(
+          markers: [
+            if (locationState is LocationLoaded)
+              Marker(
+                point: LatLng(
+                  locationState.location.latitude,
+                  locationState.location.longitude,
+                ),
+                width: 60,
+                height: 60,
+                child: const _UserLocationMarker(),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTopBar() {
+    return TopBar(
+      selectedMapStyle: _selectedMapStyle,
+      onMapStyleChanged: (value) => setState(() => _selectedMapStyle = value),
+    );
+  }
+
+  Widget _buildLegend() {
+    return LegendCard(onClose: () => setState(() => _showLegend = false));
+  }
+
+  Widget _buildControlButtons(LocationState locationState) {
+    return _ControlButtons(
+      mapController: _mapController,
+      state: locationState,
+      showLegend: _showLegend,
+      showHeatmap: _showHeatmap,
+      onLegendClosed: () => setState(() => _showLegend = true),
+      onToggleHeatmap: () => setState(() => _showHeatmap = !_showHeatmap),
+      isLoading: () {
+        if (locationState is LocationLoading && _isMapReady) {
+          return true;
+        }
+        return false;
+      }(),
+    );
+  }
 }
 
-class _BuildUserLocationMarker extends StatelessWidget {
+// Extracted widget for user location marker
+class _UserLocationMarker extends StatelessWidget {
+  const _UserLocationMarker();
+
   @override
   Widget build(BuildContext context) {
     return Icon(
@@ -239,21 +340,24 @@ class _BuildUserLocationMarker extends StatelessWidget {
   }
 }
 
-class _BuildControlButtons extends StatelessWidget {
+// Extracted widget for control buttons
+class _ControlButtons extends StatelessWidget {
   final MapController mapController;
   final LocationState state;
   final bool showLegend;
   final bool showHeatmap;
   final VoidCallback onLegendClosed;
   final VoidCallback onToggleHeatmap;
+  final bool? isLoading;
 
-  const _BuildControlButtons({
+  const _ControlButtons({
     required this.mapController,
     required this.state,
     required this.showLegend,
     required this.showHeatmap,
     required this.onLegendClosed,
     required this.onToggleHeatmap,
+    this.isLoading,
   });
 
   @override
@@ -282,22 +386,14 @@ class _BuildControlButtons extends StatelessWidget {
             icon: Icons.add,
             tooltip: 'Zoom In',
             iconColor: Colors.red[700],
-            onPressed: () {
-              final currentCenter = mapController.camera.center;
-              final currentZoom = mapController.camera.zoom;
-              mapController.move(currentCenter, currentZoom + 1);
-            },
+            onPressed: () => _handleZoomIn(mapController),
           ),
           const SizedBox(height: 10),
           ControlButton(
             icon: Icons.remove,
             tooltip: 'Zoom Out',
             iconColor: Colors.red[700],
-            onPressed: () {
-              final currentCenter = mapController.camera.center;
-              final currentZoom = mapController.camera.zoom;
-              mapController.move(currentCenter, currentZoom - 1);
-            },
+            onPressed: () => _handleZoomOut(mapController),
           ),
           const SizedBox(height: 10),
           ControlButton(
@@ -305,18 +401,30 @@ class _BuildControlButtons extends StatelessWidget {
             tooltip: 'Center on Current Location',
             iconColor: Colors.white,
             color: Colors.red[700],
-            onPressed: () {
-              if (state is LocationLoaded) {
-                final location = (state as LocationLoaded).location;
-                mapController.move(
-                  LatLng(location.latitude, location.longitude),
-                  15.0,
-                );
-              }
-            },
+            onPressed: () => _handleCenterLocation(mapController, state),
+            isLoading: isLoading,
           ),
         ],
       ),
     );
+  }
+
+  void _handleZoomIn(MapController controller) {
+    final currentCenter = controller.camera.center;
+    final currentZoom = controller.camera.zoom;
+    controller.move(currentCenter, currentZoom + 1);
+  }
+
+  void _handleZoomOut(MapController controller) {
+    final currentCenter = controller.camera.center;
+    final currentZoom = controller.camera.zoom;
+    controller.move(currentCenter, currentZoom - 1);
+  }
+
+  void _handleCenterLocation(MapController controller, LocationState state) {
+    if (state is LocationLoaded) {
+      final location = state.location;
+      controller.move(LatLng(location.latitude, location.longitude), 15.0);
+    }
   }
 }

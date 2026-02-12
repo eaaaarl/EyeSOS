@@ -6,6 +6,8 @@ class ControlButton extends StatelessWidget {
   final IconData icon;
   final Color? color;
   final Color? iconColor;
+  final bool? isLoading;
+
   const ControlButton({
     super.key,
     required this.onPressed,
@@ -13,6 +15,7 @@ class ControlButton extends StatelessWidget {
     required this.icon,
     this.color,
     this.iconColor,
+    this.isLoading,
   });
 
   @override
@@ -22,15 +25,25 @@ class ControlButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
-        onTap: onPressed,
+        onTap: isLoading == true ? null : onPressed,
         borderRadius: BorderRadius.circular(12),
         child: Tooltip(
-          message: tooltip,
+          message: isLoading == true ? '' : tooltip,
           child: Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: iconColor, size: 22),
+            alignment: Alignment.center,
+            child: isLoading == true
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: iconColor ?? Theme.of(context).iconTheme.color,
+                    ),
+                  )
+                : Icon(icon, color: iconColor, size: 22),
           ),
         ),
       ),
