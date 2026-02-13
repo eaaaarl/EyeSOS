@@ -20,6 +20,7 @@ class AccidentReportRepository {
     String? landmark,
     File? imageUrl,
     String? severity,
+    required double accuracy,
   }) async {
     try {
       final String fileName =
@@ -38,6 +39,17 @@ class AccidentReportRepository {
           .from('accidents_images')
           .getPublicUrl(filePath);
 
+      String locationQuality;
+      if (accuracy <= 10) {
+        locationQuality = 'excellent';
+      } else if (accuracy <= 30) {
+        locationQuality = 'good';
+      } else if (accuracy <= 100) {
+        locationQuality = 'fair';
+      } else {
+        locationQuality = 'poor';
+      }
+
       await _supabase.from('accidents').insert({
         'severity': severity ?? 'minor',
         'reported_by': reportedBy,
@@ -52,6 +64,8 @@ class AccidentReportRepository {
         'province': province,
         'landmark': landmark,
         'imageUrl': [supabaseImageUrl],
+        'location_accuracy': accuracy,
+        'location_quality': locationQuality,
       });
     } catch (e) {
       rethrow;

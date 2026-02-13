@@ -131,7 +131,7 @@ class AccidentReportBloc
         if (placemarks.isNotEmpty) {
           Placemark place = placemarks[0];
           address =
-              "${place.name?.toUpperCase() ?? ''}, ${place.locality?.toUpperCase() ?? ''}, ${place.subAdministrativeArea?.toUpperCase() ?? ''}";
+              "${place.street ?? ''}, ${place.locality ?? ''}, ${place.subAdministrativeArea ?? ''}";
 
           emit(state.copyWith(currentAddress: address));
         }
@@ -195,6 +195,7 @@ class AccidentReportBloc
         reporterName: event.reporterName,
         imageUrl: state.imageUrl,
         reporterContact: event.phoneNumber,
+        accuracy: state.currentPosition!.accuracy,
       );
 
       emit(

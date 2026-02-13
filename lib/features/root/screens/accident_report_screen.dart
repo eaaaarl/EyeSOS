@@ -282,8 +282,6 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
             ),
             body: Form(
               child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
