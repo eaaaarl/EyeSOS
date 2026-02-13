@@ -24,7 +24,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         _cachedLocation != null &&
         _lastFetchTime != null &&
         DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
-      emit(LocationLoaded(_cachedLocation!));
+      emit(
+        LocationLoaded(location: _cachedLocation!, timestamp: _lastFetchTime!),
+      );
       return;
     }
 
@@ -36,7 +38,8 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       if (!permissionStatus) {
         emit(
           LocationError(
-            'Location permission denied. Please enable it in app settings.',
+            message:
+                'Location permission denied. Please enable it in app settings.',
           ),
         );
         return;
@@ -46,7 +49,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
 
       if (!serviceEnabled) {
         emit(
-          LocationError('Location services are disabled. Please enable GPS.'),
+          LocationError(
+            message: 'Location services are disabled. Please enable GPS.',
+          ),
         );
         return;
       }
@@ -73,12 +78,15 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         latitude: position.latitude,
         longitude: position.longitude,
         address: address,
+        accuracy: position.accuracy,
       );
       _lastFetchTime = DateTime.now();
 
-      emit(LocationLoaded(_cachedLocation!));
+      emit(
+        LocationLoaded(location: _cachedLocation!, timestamp: _lastFetchTime!),
+      );
     } catch (e) {
-      emit(LocationError(_getErrorMessage(e)));
+      emit(LocationError(message: _getErrorMessage(e)));
     }
   }
 

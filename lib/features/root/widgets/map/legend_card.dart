@@ -9,7 +9,7 @@ class LegendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: 110,
+      top: 105,
       left: 16,
       child: Container(
         padding: const EdgeInsets.all(12),

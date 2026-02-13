@@ -781,7 +781,7 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
               'Describe what happened...\n\nExample: Two-car collision at the intersection. No injuries reported.',
           hintStyle: GoogleFonts.inter(color: Colors.grey[400], fontSize: 14),
           errorText: state.description.displayError != null
-              ? 'Please describe what happened (min 10 chars)'
+              ? 'Min 10 characters required'
               : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),

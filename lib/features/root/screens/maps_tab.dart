@@ -6,6 +6,7 @@ import 'package:eyesos/features/root/widgets/accident_report/no_internet_fallbac
 import 'package:eyesos/features/root/widgets/accident_report/topbar.dart';
 import 'package:eyesos/features/root/widgets/accident_report/user_location_marker.dart';
 import 'package:eyesos/features/root/widgets/map/legend_card.dart';
+import 'package:eyesos/features/root/widgets/map/location_time_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -303,7 +304,12 @@ class _ControlButtons extends StatelessWidget {
       right: 16,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          if (state is LocationLoaded) ...[
+            LocationTimeBadge(locationState: state),
+            const SizedBox(height: 10),
+          ],
           ControlButton(
             icon: showHeatmap ? Icons.visibility : Icons.visibility_off,
             tooltip: showHeatmap ? 'Hide Heatmap' : 'Show Heatmap',
