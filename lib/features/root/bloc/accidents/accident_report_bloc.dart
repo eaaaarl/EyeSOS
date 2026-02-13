@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'accident_report_event.dart';
 import 'accident_report_state.dart';
 
@@ -50,35 +51,71 @@ class AccidentReportBloc
     emit(state.copyWith(isLoadingLocation: true, clearLocationError: true));
 
     try {
-      // 1. Check permissions (standard Geolocator stuff)
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        emit(
+          state.copyWith(
+            isLoadingLocation: false,
+            locationError:
+                'Location services are disabled. Please enable them in settings.',
+          ),
+        );
+        return;
       }
 
-      // 2. Get FRESH position specifically for this report
-      Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter:
-              100, // Optional: minimum distance (in meters) before update
-        ),
-      );
+      var status = await Permission.location.request();
 
-      // 3. Get FRESH address
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
-      String address = "Address not found";
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        address =
-            "${place.street}, ${place.locality}, ${place.administrativeArea}";
+      if (status.isDenied) {
+        emit(
+          state.copyWith(
+            isLoadingLocation: false,
+            locationError:
+                'Location permission denied. Please grant permission.',
+          ),
+        );
+        return;
       }
 
-      // 4. Update the state with the NEW data
+      if (status.isPermanentlyDenied) {
+        emit(
+          state.copyWith(
+            isLoadingLocation: false,
+            locationError:
+                'Location permission permanently denied. Please enable in settings.',
+          ),
+        );
+        return;
+      }
+
+      Position position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 0,
+          ),
+        ).timeout(const Duration(seconds: 20));
+      } catch (e) {
+        if (e.toString().contains('timeout')) {
+          emit(
+            state.copyWith(
+              isLoadingLocation: false,
+              locationError:
+                  'Unable to get your current location. Please ensure GPS is enabled and you have a clear view of the sky.',
+            ),
+          );
+        } else {
+          emit(
+            state.copyWith(
+              isLoadingLocation: false,
+              locationError: 'Failed to get location: ${e.toString()}',
+            ),
+          );
+        }
+        return;
+      }
+
+      String address = "Fetching address...";
       emit(
         state.copyWith(
           currentPosition: position,
@@ -86,8 +123,27 @@ class AccidentReportBloc
           isLoadingLocation: false,
         ),
       );
+      try {
+        List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        ).timeout(const Duration(seconds: 5));
+        if (placemarks.isNotEmpty) {
+          Placemark place = placemarks[0];
+          address =
+              "${place.name?.toUpperCase() ?? ''}, ${place.locality?.toUpperCase() ?? ''}, ${place.subAdministrativeArea?.toUpperCase() ?? ''}";
+
+          emit(state.copyWith(currentAddress: address));
+        }
+      } catch (e) {
+        emit(
+          state.copyWith(
+            currentAddress:
+                "Lat: ${position.latitude.toStringAsFixed(6)}, Long: ${position.longitude.toStringAsFixed(6)}",
+          ),
+        );
+      }
     } catch (e) {
-      // Use copyWith to update the error message in the state
       emit(
         state.copyWith(
           isLoadingLocation: false,

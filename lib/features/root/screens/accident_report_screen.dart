@@ -668,6 +668,12 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
                     ),
                     const SizedBox(height: 16),
                     _buildLocationInfoRow(
+                      icon: Icons.location_city,
+                      label: 'Address',
+                      value: state.currentAddress!,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildLocationInfoRow(
                       icon: Icons.my_location,
                       label: 'Latitude',
                       value: state.currentPosition!.latitude.toStringAsFixed(6),

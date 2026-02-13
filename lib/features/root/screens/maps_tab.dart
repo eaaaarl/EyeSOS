@@ -4,6 +4,7 @@ import 'package:eyesos/features/root/widgets/accident_report/control_button.dart
 import 'package:eyesos/features/root/widgets/accident_report/map_skeleton.dart';
 import 'package:eyesos/features/root/widgets/accident_report/no_internet_fallback.dart';
 import 'package:eyesos/features/root/widgets/accident_report/topbar.dart';
+import 'package:eyesos/features/root/widgets/accident_report/user_location_marker.dart';
 import 'package:eyesos/features/root/widgets/map/legend_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -144,45 +145,6 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  /* Widget _buildLocationLoadingOverlay() {
-    return Positioned(
-      top: 100,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.black87,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
-              SizedBox(width: 12),
-              Text(
-                'Getting your location...',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  } */
-
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
@@ -210,10 +172,6 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
 
                   // Loading skeleton
                   if (!_isMapReady) const MapSkeleton(),
-
-                  /*   // Loading indicator for location
-                  if (locationState is LocationLoading && _isMapReady)
-                    _buildLocationLoadingOverlay(), */
 
                   // UI Controls (only show when map is ready)
                   if (_isMapReady) ...[
@@ -282,7 +240,7 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
                 ),
                 width: 60,
                 height: 60,
-                child: const _UserLocationMarker(),
+                child: const UserLocationMarker(),
               ),
           ],
         ),
@@ -307,7 +265,7 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
       state: locationState,
       showLegend: _showLegend,
       showHeatmap: _showHeatmap,
-      onLegendClosed: () => setState(() => _showLegend = true),
+      onOpenLegend: () => setState(() => _showLegend = true),
       onToggleHeatmap: () => setState(() => _showHeatmap = !_showHeatmap),
       isLoading: () {
         if (locationState is LocationLoading && _isMapReady) {
@@ -319,34 +277,12 @@ class _MapsTabState extends State<MapsTab> with AutomaticKeepAliveClientMixin {
   }
 }
 
-// Extracted widget for user location marker
-class _UserLocationMarker extends StatelessWidget {
-  const _UserLocationMarker();
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(
-      Icons.person_pin_circle,
-      color: Colors.red[700],
-      size: 40,
-      shadows: [
-        Shadow(
-          color: Colors.black.withValues(alpha: 0.4),
-          blurRadius: 6,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    );
-  }
-}
-
-// Extracted widget for control buttons
 class _ControlButtons extends StatelessWidget {
   final MapController mapController;
   final LocationState state;
   final bool showLegend;
   final bool showHeatmap;
-  final VoidCallback onLegendClosed;
+  final VoidCallback onOpenLegend;
   final VoidCallback onToggleHeatmap;
   final bool? isLoading;
 
@@ -355,7 +291,7 @@ class _ControlButtons extends StatelessWidget {
     required this.state,
     required this.showLegend,
     required this.showHeatmap,
-    required this.onLegendClosed,
+    required this.onOpenLegend,
     required this.onToggleHeatmap,
     this.isLoading,
   });
@@ -378,7 +314,7 @@ class _ControlButtons extends StatelessWidget {
             ControlButton(
               icon: Icons.legend_toggle,
               tooltip: 'Show Legend',
-              onPressed: onLegendClosed,
+              onPressed: onOpenLegend,
               iconColor: Colors.red[700],
             ),
           const SizedBox(height: 10),
