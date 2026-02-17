@@ -282,8 +282,6 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
             ),
             body: Form(
               child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -668,6 +666,12 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
                     ),
                     const SizedBox(height: 16),
                     _buildLocationInfoRow(
+                      icon: Icons.location_city,
+                      label: 'Address',
+                      value: state.currentAddress!,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildLocationInfoRow(
                       icon: Icons.my_location,
                       label: 'Latitude',
                       value: state.currentPosition!.latitude.toStringAsFixed(6),
@@ -777,7 +781,7 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
               'Describe what happened...\n\nExample: Two-car collision at the intersection. No injuries reported.',
           hintStyle: GoogleFonts.inter(color: Colors.grey[400], fontSize: 14),
           errorText: state.description.displayError != null
-              ? 'Please describe what happened (min 10 chars)'
+              ? 'Min 10 characters required'
               : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
