@@ -26,6 +26,12 @@ class AccidentReport {
   });
 
   factory AccidentReport.fromJson(Map<String, dynamic> json) {
+    final imageList =
+        (json['accident_images'] as List<dynamic>?)
+            ?.map((e) => e['url'] as String)
+            .toList() ??
+        [];
+
     return AccidentReport(
       id: json['id'],
       // Parse the ISO8601 string from Supabase
@@ -39,7 +45,7 @@ class AccidentReport {
       longitude: (json['longitude'] as num).toDouble(),
       locationAddress: json['location_address'] ?? 'Unknown Location',
       // Convert the dynamic list to a List<String>
-      imageUrls: List<String>.from(json['imageUrl'] ?? []),
+      imageUrls: imageList,
       isSos: json['sos_type'] ?? false,
     );
   }

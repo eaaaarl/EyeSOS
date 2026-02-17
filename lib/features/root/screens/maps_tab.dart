@@ -316,6 +316,7 @@ class _ControlButtons extends StatelessWidget {
             onPressed: onToggleHeatmap,
             iconColor: Colors.red[700],
           ),
+          const SizedBox(height: 10),
           if (!showLegend)
             ControlButton(
               icon: Icons.legend_toggle,

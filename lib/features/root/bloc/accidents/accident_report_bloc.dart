@@ -193,7 +193,7 @@ class AccidentReportBloc
         locationAddress: state.currentAddress,
         reporterNotes: state.description.value,
         reporterName: event.reporterName,
-        imageUrl: state.imageUrl,
+        imageFile: state.imageUrl,
         reporterContact: event.phoneNumber,
         accuracy: state.currentPosition!.accuracy,
       );
