@@ -112,8 +112,6 @@ class AccidentReportRepository {
           .order('created_at', ascending: false)
           .range(offset, offset + pageSize - 1);
 
-      print('response: $response');
-
       return (response as List)
           .map((json) => AccidentReport.fromJson(json))
           .toList();

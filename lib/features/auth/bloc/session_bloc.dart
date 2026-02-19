@@ -20,13 +20,7 @@ class SessionBloc extends HydratedBloc<SessionEvent, SessionState> {
   }
 
   void _onAuthLoggedIn(AuthLoggedIn event, Emitter<SessionState> emit) {
-    print("🔵 SessionBloc: Received AuthLoggedIn event");
-    print("🔵 User: ${event.user.toJson()}");
-    print("🔵 Phone: ${event.user.phoneNumber}");
-
     emit(AuthAuthenticated(user: event.user));
-
-    print("🔵 SessionBloc: Emitted AuthAuthenticated state");
   }
 
   void _onAuthLoggedOut(AuthLoggedOut event, Emitter<SessionState> emit) async {
