@@ -90,17 +90,27 @@ class EmergencyButtonSection extends StatelessWidget {
       builder: (context, connectivityState) {
         final isOffline = connectivityState == ConnectivityStatus.disconnected;
 
+        // More descriptive subtitle logic
+        String subtitle;
+        if (!isAuthenticated) {
+          subtitle = 'Sign in to report emergencies';
+        } else if (isOffline) {
+          subtitle = 'No internet connection';
+        } else {
+          subtitle = 'Report traffic accidents with details';
+        }
+
         return EmergencyButton(
           context: context,
           label: 'Send Accident Report',
-          subtitle: isAuthenticated
-              ? (isOffline
-                    ? 'No internet connection'
-                    : 'Report traffic accidents with details')
-              : 'Sign in to report emergencies',
-          icon: Icons.car_crash,
-          color: isOffline ? Colors.grey[500]! : Colors.orange[700]!,
-          isLocked: !isAuthenticated || isOffline,
+          subtitle: subtitle,
+          icon: isOffline ? Icons.cloud_off : Icons.car_crash,
+          // Subtle visual feedback — not fully grey, just slightly muted
+          color: isOffline
+              ? Colors.orange[700]!.withValues(alpha: 0.5)
+              : Colors.orange[700]!,
+          isLocked: !isAuthenticated,
+          // Keep button always tappable — handle logic inside
           onPressed: () => _handleSendAccidentReport(context, isOffline),
         ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2);
       },
@@ -108,32 +118,44 @@ class EmergencyButtonSection extends StatelessWidget {
   }
 
   void _handleSendAccidentReport(BuildContext context, bool isOffline) {
-    if (isOffline) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.cloud_off, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Please connect to the internet to report emergencies',
-                  style: GoogleFonts.inter(),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.red[700],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-    } else if (isAuthenticated) {
-      context.push('/accident-report');
-    } else {
+    if (!isAuthenticated) {
       onPressSignIn();
+      return;
     }
+
+    if (isOffline) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.cloud_off, color: Colors.white, size: 18),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'No internet. Please reconnect to report emergencies.',
+                    style: GoogleFonts.inter(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red[700],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      return;
+    }
+
+    context.push('/accident-report');
   }
 }

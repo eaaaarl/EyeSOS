@@ -3,7 +3,6 @@ import 'package:eyesos/core/bloc/connectivity_state.dart';
 import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
 import 'package:eyesos/features/root/bloc/map/map_state.dart';
 import 'package:eyesos/features/root/widgets/accident_report/map_skeleton.dart';
-import 'package:eyesos/features/root/widgets/accident_report/no_internet_fallback.dart';
 import 'package:eyesos/features/root/widgets/accident_report/topbar.dart';
 import 'package:eyesos/features/root/widgets/map/map_control_buttons.dart';
 import 'package:eyesos/features/root/widgets/map/road_risk_bottom_sheet.dart';
@@ -125,10 +124,6 @@ class _MapsTableViewState extends State<MapsTableView>
       ],
       child: BlocBuilder<ConnectivityBloc, ConnectivityStatus>(
         builder: (context, connectivityState) {
-          if (connectivityState == ConnectivityStatus.disconnected) {
-            return const NoInternetFallback();
-          }
-
           return BlocBuilder<LocationBloc, LocationState>(
             builder: (context, locationState) {
               return BlocBuilder<RoadRiskBloc, RoadRiskState>(
@@ -205,12 +200,12 @@ class _MapsTableViewState extends State<MapsTableView>
                               // ── Road error banner ──────────────────────────────────
                               if (roadsError != null)
                                 Positioned(
-                                  top: 80,
+                                  top: 100,
                                   left: 16,
                                   right: 80,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
+                                      horizontal: 9,
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
