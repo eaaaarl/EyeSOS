@@ -1,4 +1,5 @@
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
+import 'package:eyesos/core/bloc/connectivity_event.dart';
 import 'package:eyesos/features/root/bloc/location/location_bloc.dart';
 import 'package:eyesos/features/root/bloc/location/location_event.dart';
 import 'package:flutter/material.dart';

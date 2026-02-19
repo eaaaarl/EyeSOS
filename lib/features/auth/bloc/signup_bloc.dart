@@ -1,18 +1,20 @@
-import 'package:eyesos/features/auth/repository/auth_repository.dart';
-import 'package:eyesos/features/auth/validation/confirm_password.dart';
-import 'package:eyesos/features/auth/validation/email.dart';
-import 'package:eyesos/features/auth/validation/name.dart';
-import 'package:eyesos/features/auth/validation/password.dart';
-import 'package:eyesos/features/auth/validation/phone_number.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
+import '../domain/usecases/signup_usecase.dart';
+import '../presentation/validation/confirm_password.dart';
+import '../presentation/validation/email.dart';
+import '../presentation/validation/name.dart';
+import '../presentation/validation/password.dart';
+import '../presentation/validation/phone_number.dart';
 import 'signup_event.dart';
 import 'signup_state.dart';
 
 class SignupBloc extends Bloc<SignupEvent, SignupState> {
-  final AuthRepository _signupRepository;
+  final SignupUsecase _signupUsecase;
 
-  SignupBloc(this._signupRepository) : super(const SignupState()) {
+  SignupBloc({required SignupUsecase signupUsecase})
+    : _signupUsecase = signupUsecase,
+      super(const SignupState()) {
     on<SignupNameChanged>(_onNameChanged);
     on<SignupEmailChanged>(_onEmailChanged);
     on<SignupPasswordChanged>(_onPasswordChanged);
@@ -121,7 +123,6 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
     );
   }
 
-  // BLoC
   Future<void> _onSubmitted(
     SignupSubmitted event,
     Emitter<SignupState> emit,
@@ -131,7 +132,7 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
     emit(state.copyWith(status: SignupStatus.loading));
 
     try {
-      final user = await _signupRepository.signup(
+      final user = await _signupUsecase(
         name: state.name.value,
         email: state.email.value,
         password: state.password.value,
@@ -143,7 +144,7 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
       emit(
         state.copyWith(
           status: SignupStatus.failure,
-          errorMessage: e.toString(), // Now it's already a clean message
+          errorMessage: e.toString(),
         ),
       );
     }

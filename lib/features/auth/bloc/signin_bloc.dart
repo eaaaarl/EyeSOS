@@ -1,16 +1,27 @@
-import 'package:eyesos/features/auth/repository/auth_repository.dart';
-import 'package:eyesos/features/auth/validation/email.dart';
-import 'package:eyesos/features/auth/validation/password.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../domain/usecases/signin_usecase.dart';
+import '../domain/usecases/signin_with_google_usecase.dart';
+import '../domain/usecases/has_phone_number_usecase.dart';
+import '../presentation/validation/email.dart';
+import '../presentation/validation/password.dart';
 import 'signin_event.dart';
 import 'signin_state.dart';
 
 class SigninBloc extends Bloc<SigninEvent, SigninState> {
-  final AuthRepository _authRepository;
+  final SignInUsecase _signInUsecase;
+  final SignInWithGoogleUsecase _signInWithGoogleUsecase;
+  final HasPhoneNumberUsecase _hasPhoneNumberUsecase;
 
-  SigninBloc(this._authRepository) : super(const SigninState()) {
+  SigninBloc({
+    required SignInUsecase signInUsecase,
+    required SignInWithGoogleUsecase signInWithGoogleUsecase,
+    required HasPhoneNumberUsecase hasPhoneNumberUsecase,
+  }) : _signInUsecase = signInUsecase,
+       _signInWithGoogleUsecase = signInWithGoogleUsecase,
+       _hasPhoneNumberUsecase = hasPhoneNumberUsecase,
+       super(const SigninState()) {
     on<SigninEmailChanged>(_onEmailChanged);
     on<SigninPasswordChanged>(_onPasswordChanged);
     on<SigninSubmitted>(_onSubmitted);
@@ -51,11 +62,18 @@ class SigninBloc extends Bloc<SigninEvent, SigninState> {
     emit(state.copyWith(status: SigninStatus.loading));
 
     try {
-      final user = await _authRepository.signIn(
+      final user = await _signInUsecase(
         email: state.email.value,
         password: state.password.value,
       );
-      emit(state.copyWith(status: SigninStatus.success, user: user));
+      final hasPhone = await _hasPhoneNumberUsecase(user.id);
+      emit(
+        state.copyWith(
+          status: SigninStatus.success,
+          user: user,
+          hasPhoneNumber: hasPhone,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(
@@ -73,8 +91,8 @@ class SigninBloc extends Bloc<SigninEvent, SigninState> {
     emit(state.copyWith(googleSignInStatus: GoogleSignInStatus.loading));
 
     try {
-      final user = await _authRepository.signInWithGoogle();
-      final hasPhone = await _authRepository.hasPhoneNumber(user.id);
+      final user = await _signInWithGoogleUsecase();
+      final hasPhone = await _hasPhoneNumberUsecase(user.id);
       emit(
         state.copyWith(
           googleSignInStatus: GoogleSignInStatus.success,
@@ -84,7 +102,6 @@ class SigninBloc extends Bloc<SigninEvent, SigninState> {
       );
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
-        // User pressed back — silently reset, don't show error
         emit(state.copyWith(googleSignInStatus: GoogleSignInStatus.idle));
         return;
       }

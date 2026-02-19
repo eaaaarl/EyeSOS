@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
-import 'package:eyesos/features/auth/models/user_model.dart';
-import 'package:eyesos/features/auth/validation/confirm_password.dart';
-import 'package:eyesos/features/auth/validation/email.dart';
-import 'package:eyesos/features/auth/validation/name.dart';
-import 'package:eyesos/features/auth/validation/password.dart';
-import 'package:eyesos/features/auth/validation/phone_number.dart';
+import '../domain/entities/user_entity.dart';
+import '../presentation/validation/confirm_password.dart';
+import '../presentation/validation/email.dart';
+import '../presentation/validation/name.dart';
+import '../presentation/validation/password.dart';
+import '../presentation/validation/phone_number.dart';
 
 enum SignupStatus { initial, loading, success, failure }
 
@@ -29,7 +29,7 @@ class SignupState extends Equatable {
   final PhoneNumber phoneNumber;
   final bool isValid;
   final String? errorMessage;
-  final UserModel? user;
+  final UserEntity? user;
 
   SignupState copyWith({
     SignupStatus? status,
@@ -40,7 +40,7 @@ class SignupState extends Equatable {
     PhoneNumber? phoneNumber,
     bool? isValid,
     String? errorMessage,
-    UserModel? user,
+    UserEntity? user,
   }) {
     return SignupState(
       status: status ?? this.status,

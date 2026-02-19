@@ -1,4 +1,5 @@
-import 'package:eyesos/features/auth/models/user_model.dart';
+import '../domain/entities/user_entity.dart';
+import '../data/models/user_model.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class SessionState extends Equatable {
@@ -9,7 +10,7 @@ abstract class SessionState extends Equatable {
 class SessionInitial extends SessionState {}
 
 class AuthAuthenticated extends SessionState {
-  final UserModel user;
+  final UserEntity user;
 
   AuthAuthenticated({required this.user});
 
@@ -18,7 +19,7 @@ class AuthAuthenticated extends SessionState {
   String? get fullName => user.fullName;
   String? get phoneNumber => user.phoneNumber;
 
-  Map<String, dynamic> toJson() => user.toJson();
+  Map<String, dynamic> toJson() => (user as UserModel).toJson();
 
   @override
   List<Object?> get props => [user];

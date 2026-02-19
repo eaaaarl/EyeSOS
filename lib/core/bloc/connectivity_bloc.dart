@@ -1,26 +1,9 @@
 import 'dart:async';
 
+import 'package:eyesos/core/bloc/connectivity_event.dart';
+import 'package:eyesos/core/bloc/connectivity_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-
-//EVENTS
-
-abstract class ConnectivityEvent {}
-
-class ConnectivityChanged extends ConnectivityEvent {
-  final InternetStatus status;
-  ConnectivityChanged(this.status);
-}
-
-class CheckConnectivity extends ConnectivityEvent {}
-
-class RetryConnection extends ConnectivityEvent {}
-
-//STATES
-
-enum ConnectivityStatus { connected, disconnected, checking }
-
-//BLOC
 
 class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityStatus> {
   StreamSubscription<InternetStatus>? _subscription;
@@ -28,7 +11,6 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityStatus> {
   Timer? _retryTimer;
   int _disconnectCount = 0;
 
-  // Debounce settings - more lenient for better UX
   static const Duration _debounceDisconnect = Duration(
     seconds: 10,
   ); // Wait 10s before showing "disconnected"
@@ -59,12 +41,10 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityStatus> {
     ConnectivityChanged event,
     Emitter<ConnectivityStatus> emit,
   ) async {
-    // Cancel any pending debounce timer
     _debounceTimer?.cancel();
 
     final isConnected = event.status == InternetStatus.connected;
 
-    // If connection restored, reset everything
     if (isConnected) {
       _disconnectCount = 0;
       _retryTimer?.cancel();

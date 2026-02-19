@@ -1,4 +1,4 @@
-import 'package:eyesos/widgets/app_providers.dart';
+import 'package:eyesos/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';

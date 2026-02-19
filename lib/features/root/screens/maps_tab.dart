@@ -1,4 +1,5 @@
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
+import 'package:eyesos/core/bloc/connectivity_state.dart';
 import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
 import 'package:eyesos/features/root/bloc/map/map_state.dart';
 import 'package:eyesos/features/root/widgets/accident_report/map_skeleton.dart';
