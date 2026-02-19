@@ -3,6 +3,7 @@ import 'package:eyesos/features/auth/validation/email.dart';
 import 'package:eyesos/features/auth/validation/password.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'signin_event.dart';
 import 'signin_state.dart';
 
@@ -72,13 +73,8 @@ class SigninBloc extends Bloc<SigninEvent, SigninState> {
     emit(state.copyWith(googleSignInStatus: GoogleSignInStatus.loading));
 
     try {
-      // 1. Perform the sign in
       final user = await _authRepository.signInWithGoogle();
-
-      // 2. Check the database for phone number right here
       final hasPhone = await _authRepository.hasPhoneNumber(user.id);
-
-      // 3. Emit success with the phone number status
       emit(
         state.copyWith(
           googleSignInStatus: GoogleSignInStatus.success,
@@ -86,7 +82,20 @@ class SigninBloc extends Bloc<SigninEvent, SigninState> {
           hasPhoneNumber: hasPhone,
         ),
       );
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        // User pressed back — silently reset, don't show error
+        emit(state.copyWith(googleSignInStatus: GoogleSignInStatus.idle));
+        return;
+      }
+      emit(
+        state.copyWith(
+          googleSignInStatus: GoogleSignInStatus.failure,
+          googleSignInErrorMessage: e.description ?? 'Google sign-in failed',
+        ),
+      );
     } catch (e) {
+      print('catch response: ${e.toString()}');
       emit(
         state.copyWith(
           googleSignInStatus: GoogleSignInStatus.failure,
