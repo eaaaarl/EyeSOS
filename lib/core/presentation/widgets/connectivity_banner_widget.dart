@@ -21,7 +21,7 @@ class ConnectivityBanner extends StatelessWidget {
               Positioned(
                 bottom: MediaQuery.of(context).padding.bottom + 90,
                 left: 16,
-                child: Center(child: _buildPill(state)),
+                child: _buildPill(state) ?? const SizedBox.shrink(),
               ),
           ],
         );
@@ -110,6 +110,7 @@ class _PillState extends State<_Pill> {
                   color: Colors.white,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.none, // add this
                 ),
               ),
             ],
