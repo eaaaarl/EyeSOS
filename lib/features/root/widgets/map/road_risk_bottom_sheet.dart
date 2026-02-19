@@ -13,18 +13,14 @@ class RoadRiskBottomSheet extends StatelessWidget {
     final scoreFraction = (road.riskScore / 100).clamp(0.0, 1.0);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.55,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
-      builder: (_, scrollController) => Container(
+    return Padding(
+      padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.15),
+      child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SingleChildScrollView(
-          controller: scrollController,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,6 +279,8 @@ class RoadRiskBottomSheet extends StatelessWidget {
   }
 }
 
+// ── Time Chip ──────────────────────────────────────────────────────────────────
+
 class _TimeChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -337,6 +335,8 @@ class _TimeChip extends StatelessWidget {
     );
   }
 }
+
+// ── Hourly Risk Bar ────────────────────────────────────────────────────────────
 
 class _HourlyRiskBar extends StatelessWidget {
   final RoadSegment road;
