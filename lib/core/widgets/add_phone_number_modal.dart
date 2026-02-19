@@ -77,8 +77,8 @@ class _AddPhoneNumberModalState extends State<AddPhoneNumberModal> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // Prevent dismissing
+    return PopScope(
+      canPop: false, // Prevent dismissing
       child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
