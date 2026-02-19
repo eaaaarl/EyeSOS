@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:io';
 
 class CameraScreen extends StatefulWidget {
@@ -56,7 +57,7 @@ class _CameraScreenState extends State<CameraScreen> {
       if (!mounted) return;
 
       // Return the captured image file
-      Navigator.pop(context, File(image.path));
+      context.pop(File(image.path));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -104,7 +105,7 @@ class _CameraScreenState extends State<CameraScreen> {
                                 Icons.arrow_back,
                                 color: Colors.white,
                               ),
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () => context.pop(),
                             ),
                           ),
 

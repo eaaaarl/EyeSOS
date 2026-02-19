@@ -1,4 +1,4 @@
-import 'package:eyesos/features/root/repository/accident_report_repository.dart';
+import 'package:eyesos/features/home/domain/usecases/send_report_accident_usecase.dart';
 import 'package:eyesos/features/root/validations/description.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
@@ -10,10 +10,12 @@ import 'accident_report_state.dart';
 
 class AccidentReportBloc
     extends Bloc<AccidentReportEvent, AccidentReportState> {
-  final AccidentReportRepository accidentReportRepository;
+  final SendReportAccidentUsecase _sendReportAccidentUsecase;
 
-  AccidentReportBloc(this.accidentReportRepository)
-    : super(const AccidentReportState()) {
+  AccidentReportBloc({
+    required SendReportAccidentUsecase sendReportAccidentUseCase,
+  }) : _sendReportAccidentUsecase = sendReportAccidentUseCase,
+       super(const AccidentReportState()) {
     on<ImageCaptured>(_onImageCaptured);
     on<ImageRemoved>(_onImageRemoved);
     on<LocationRequested>(_onLocationRequested);
@@ -186,7 +188,7 @@ class AccidentReportBloc
     emit(state.copyWith(formStatus: FormzSubmissionStatus.inProgress));
 
     try {
-      await accidentReportRepository.submitAccidentReport(
+      await _sendReportAccidentUsecase(
         reportedBy: event.userId,
         latitude: state.currentPosition!.latitude,
         longitude: state.currentPosition!.longitude,

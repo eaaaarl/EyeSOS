@@ -5,7 +5,6 @@ import 'package:eyesos/features/auth/bloc/signin_bloc.dart';
 import 'package:eyesos/features/auth/bloc/signin_event.dart';
 import 'package:eyesos/features/auth/bloc/signin_state.dart';
 import 'package:eyesos/features/auth/domain/entities/user_entity.dart';
-import 'package:eyesos/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:eyesos/features/auth/presentation/widgets/oauth_widget.dart';
 import 'package:eyesos/features/profile/presentation/widgets/sign_up_prompt_sheet.dart';
 import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
@@ -13,6 +12,7 @@ import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginPromptSheet extends StatelessWidget {
   const LoginPromptSheet({super.key, required this.parentContext});
@@ -29,13 +29,13 @@ class LoginPromptSheet extends StatelessWidget {
             state.googleSignInStatus == GoogleSignInStatus.failure;
         if (isSuccess && state.user != null) {
           if (state.hasPhoneNumber) {
-            Navigator.pop(parentContext);
+            context.pop();
             parentContext.read<AccidentsReportLoadBloc>().add(
               RefreshReports(userId: state.user!.id),
             );
             parentContext.read<SessionBloc>().add(AuthLoggedIn(state.user!));
           } else {
-            Navigator.pop(parentContext);
+            context.pop();
             showModalBottomSheet(
               context: parentContext,
               isScrollControlled: true,
@@ -43,7 +43,7 @@ class LoginPromptSheet extends StatelessWidget {
               builder: (modalContext) => AddPhoneNumberModal(
                 userId: state.user!.id,
                 onComplete: (UserEntity user) {
-                  Navigator.pop(modalContext);
+                  context.pop();
                   parentContext.read<AccidentsReportLoadBloc>().add(
                     RefreshReports(userId: user.id),
                   );
@@ -199,10 +199,7 @@ class LoginPromptSheet extends StatelessWidget {
                 ),
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
-                      parentContext,
-                      MaterialPageRoute(builder: (_) => const SignInPage()),
-                    );
+                    context.push('/signin');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red[700],
@@ -227,7 +224,7 @@ class LoginPromptSheet extends StatelessWidget {
               // Create Account Link
               TextButton(
                 onPressed: () {
-                  Navigator.pop(parentContext);
+                  context.pop();
                   showModalBottomSheet(
                     context: parentContext,
                     isScrollControlled: true,

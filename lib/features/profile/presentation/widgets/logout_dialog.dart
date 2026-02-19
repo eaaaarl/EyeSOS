@@ -2,7 +2,7 @@ import 'package:eyesos/features/auth/bloc/session_bloc.dart';
 import 'package:eyesos/features/auth/bloc/session_event.dart';
 import 'package:eyesos/features/auth/bloc/signin_bloc.dart';
 import 'package:eyesos/features/auth/bloc/signin_event.dart';
-import 'package:eyesos/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -40,7 +40,7 @@ class LogoutDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           child: Text(
             'Cancel',
             style: GoogleFonts.inter(
@@ -52,14 +52,10 @@ class LogoutDialog extends StatelessWidget {
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.pop(context);
+            context.pop();
             context.read<SigninBloc>().add(const SigninResetState());
             context.read<SessionBloc>().add(AuthLoggedOut());
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const SignInPage()),
-              (route) => false,
-            );
+            context.go('/signin');
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red[700],

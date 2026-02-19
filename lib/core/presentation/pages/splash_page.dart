@@ -1,10 +1,9 @@
 import 'package:eyesos/features/auth/bloc/session_bloc.dart';
 import 'package:eyesos/features/auth/bloc/session_state.dart';
-import 'package:eyesos/core/presentation/layouts/root_screen.dart';
-import 'package:eyesos/features/welcome/presentation/pages/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:go_router/go_router.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,23 +26,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final sessionState = context.read<SessionBloc>().state;
 
-    Widget nextScreen;
     if (sessionState is AuthAuthenticated) {
-      nextScreen = const RootScreen();
+      context.go('/');
     } else {
-      nextScreen = const WelcomeScreen();
+      context.go('/welcome');
     }
-
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
-    );
   }
 
   @override

@@ -1,4 +1,4 @@
-import 'package:eyesos/core/presentation/pages/splash_page.dart';
+import 'package:eyesos/core/config/router.dart';
 import 'package:flutter/material.dart';
 
 class MyApp extends StatelessWidget {
@@ -6,10 +6,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'EyeSOS',
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
+      routerConfig: router,
     );
   }
 }

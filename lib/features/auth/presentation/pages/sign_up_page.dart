@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
-import 'package:eyesos/core/presentation/layouts/root_screen.dart';
+import 'package:go_router/go_router.dart';
 import '../../bloc/session_bloc.dart';
 import '../../bloc/session_event.dart';
 import '../../bloc/signup_bloc.dart';
@@ -111,7 +111,7 @@ class _SignUpPageState extends State<SignUpPage> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: Colors.grey[800]),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
@@ -131,11 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
               context.read<SessionBloc>().add(AuthLoggedIn(state.user!));
 
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const RootScreen()),
-                (route) => false,
-              );
+              context.go('/');
             } else if (state.status == SignupStatus.failure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -517,7 +513,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.pop(context);
+                              context.pop();
                             },
                             child: Text(
                               'Sign In',

@@ -5,8 +5,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:eyesos/features/auth/domain/entities/user_entity.dart';
 import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
-import 'package:eyesos/core/presentation/layouts/root_screen.dart';
 import 'package:eyesos/core/presentation/widgets/add_phone_number_modal.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/user_model.dart';
 import '../../bloc/session_bloc.dart';
 import '../../bloc/session_event.dart';
@@ -16,7 +16,6 @@ import '../../bloc/signin_state.dart';
 import '../validation/email.dart';
 import '../validation/password.dart';
 import '../widgets/oauth_widget.dart';
-import 'sign_up_page.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -69,11 +68,7 @@ class _SignInPageState extends State<SignInPage> {
       RefreshReports(userId: user.id),
     );
     context.read<SessionBloc>().add(AuthLoggedIn(user));
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const RootScreen()),
-      (route) => false,
-    );
+    context.go('/');
   }
 
   void _showPhoneModal(BuildContext context, SigninState state) {
@@ -84,7 +79,7 @@ class _SignInPageState extends State<SignInPage> {
       builder: (modalContext) => AddPhoneNumberModal(
         userId: state.user!.id,
         onComplete: (UserEntity user) {
-          Navigator.pop(modalContext);
+          context.pop();
           _navigateToHome(context, user as UserModel);
         },
       ),
@@ -474,12 +469,7 @@ class _SignInPageState extends State<SignInPage> {
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const SignUpPage(),
-                                ),
-                              );
+                              context.push('/signup');
                             },
                             child: Text(
                               'Sign Up',

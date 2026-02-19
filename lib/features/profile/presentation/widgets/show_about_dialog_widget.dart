@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AboutDialogWidget extends StatelessWidget {
@@ -57,7 +58,7 @@ class AboutDialogWidget extends StatelessWidget {
       ),
       actions: [
         ElevatedButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red[700],
             foregroundColor: Colors.white,

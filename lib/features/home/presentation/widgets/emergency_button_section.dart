@@ -1,10 +1,10 @@
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
 import 'package:eyesos/core/bloc/connectivity_state.dart';
-import 'package:eyesos/features/root/screens/accident_report_screen.dart';
 import 'package:eyesos/features/home/presentation/widgets/emergency_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class EmergencyButtonSection extends StatelessWidget {
@@ -131,10 +131,7 @@ class EmergencyButtonSection extends StatelessWidget {
         ),
       );
     } else if (isAuthenticated) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AccidentReportScreen()),
-      );
+      context.push('/accident-report');
     } else {
       onPressSignIn();
     }

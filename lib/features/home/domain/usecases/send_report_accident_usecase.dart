@@ -1,16 +1,13 @@
 import 'dart:io';
 
-import 'package:eyesos/features/home/data/datasources/accident_remote_datasource.dart';
-import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart';
 import 'package:eyesos/features/home/domain/repositories/i_accident_repository.dart';
 
-class AccidentRepositoryImpl implements IAccidentRepository {
-  final AccidentRemoteDatasource remoteDatasource;
+class SendReportAccidentUsecase {
+  final IAccidentRepository repository;
 
-  AccidentRepositoryImpl(this.remoteDatasource);
+  SendReportAccidentUsecase(this.repository);
 
-  @override
-  Future<void> sendReportAccident({
+  Future<void> call({
     required String reportedBy,
     required String reporterName,
     String? reporterNotes, // descriptions
@@ -27,7 +24,7 @@ class AccidentRepositoryImpl implements IAccidentRepository {
     required double accuracy,
   }) async {
     try {
-      return await remoteDatasource.reportAccident(
+      return await repository.sendReportAccident(
         reportedBy: reportedBy,
         reporterName: reporterName,
         reporterNotes: reporterNotes,
@@ -42,23 +39,6 @@ class AccidentRepositoryImpl implements IAccidentRepository {
         imageFile: imageFile,
         severity: severity,
         accuracy: accuracy,
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  Future<List<AccidentReportEntity>> getRecentReports({
-    required String userId,
-    int page = 1,
-    int pageSize = 5,
-  }) async {
-    try {
-      return await remoteDatasource.getRecentReports(
-        userId: userId,
-        page: page,
-        pageSize: pageSize,
       );
     } catch (e) {
       rethrow;

@@ -1,19 +1,19 @@
-import 'package:eyesos/core/presentation/layouts/root_screen.dart';
 import 'package:eyesos/features/welcome/data/models/onboarding_model.dart';
 import 'package:eyesos/features/welcome/domain/entities/onboarding_entity.dart';
 import 'package:eyesos/features/welcome/presentation/widgets/onboarding_slide_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
-class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({super.key});
+class WelcomePage extends StatefulWidget {
+  const WelcomePage({super.key});
 
   @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
+  State<WelcomePage> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomePage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -45,29 +45,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   ];
 
   void _navigateToMap() {
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const RootScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-
-          var tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
-
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
-    );
+    context.go('/');
   }
 
   @override

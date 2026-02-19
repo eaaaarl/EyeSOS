@@ -5,13 +5,12 @@ import 'package:eyesos/features/auth/bloc/signin_bloc.dart';
 import 'package:eyesos/features/auth/bloc/signin_event.dart';
 import 'package:eyesos/features/auth/bloc/signin_state.dart';
 import 'package:eyesos/features/auth/domain/entities/user_entity.dart';
-import 'package:eyesos/features/auth/presentation/pages/sign_in_page.dart';
-import 'package:eyesos/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:eyesos/features/auth/presentation/widgets/oauth_widget.dart';
 import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LoginPromptModal extends StatelessWidget {
@@ -28,13 +27,13 @@ class LoginPromptModal extends StatelessWidget {
 
         if (isSuccess && state.user != null) {
           if (state.hasPhoneNumber) {
-            Navigator.pop(context);
+            context.pop();
             context.read<AccidentsReportLoadBloc>().add(
               RefreshReports(userId: state.user!.id),
             );
             context.read<SessionBloc>().add(AuthLoggedIn(state.user!));
           } else {
-            Navigator.pop(context);
+            context.pop();
             showModalBottomSheet(
               context: context,
               isScrollControlled: true,
@@ -42,7 +41,7 @@ class LoginPromptModal extends StatelessWidget {
               builder: (phoneModalContext) => AddPhoneNumberModal(
                 userId: state.user!.id,
                 onComplete: (UserEntity user) {
-                  Navigator.pop(phoneModalContext);
+                  context.pop();
                   context.read<AccidentsReportLoadBloc>().add(
                     RefreshReports(userId: user.id),
                   );
@@ -211,11 +210,8 @@ class LoginPromptModal extends StatelessWidget {
                 ),
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SignInPage()),
-                    );
+                    context.pop();
+                    context.push('/signin');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red[700],
@@ -247,11 +243,8 @@ class LoginPromptModal extends StatelessWidget {
               // Create Account Link
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SignUpPage()),
-                  );
+                  context.pop();
+                  context.push('/signup');
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

@@ -66,7 +66,14 @@ class SigninBloc extends Bloc<SigninEvent, SigninState> {
         email: state.email.value,
         password: state.password.value,
       );
-      emit(state.copyWith(status: SigninStatus.success, user: user));
+      final hasPhone = await _hasPhoneNumberUsecase(user.id);
+      emit(
+        state.copyWith(
+          status: SigninStatus.success,
+          user: user,
+          hasPhoneNumber: hasPhone,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(

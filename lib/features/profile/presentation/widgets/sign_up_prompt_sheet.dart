@@ -1,7 +1,7 @@
-import 'package:eyesos/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:eyesos/features/profile/presentation/widgets/login_prompt_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
 class SignUpPromptSheet extends StatelessWidget {
   const SignUpPromptSheet({super.key});
@@ -81,32 +81,8 @@ class SignUpPromptSheet extends StatelessWidget {
               ),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SignUpPage()),
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          Icon(Icons.info_outline, color: Colors.white),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Sign up screen navigation will be implemented',
-                              style: GoogleFonts.inter(),
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Colors.blue[700],
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  );
+                  context.pop();
+                  context.push('/signup');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red[700],
@@ -131,7 +107,7 @@ class SignUpPromptSheet extends StatelessWidget {
             // Sign In Link
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                context.pop();
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,

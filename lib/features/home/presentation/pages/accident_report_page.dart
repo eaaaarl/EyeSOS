@@ -14,16 +14,16 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:camera/camera.dart';
-import 'camera_screen.dart';
+import 'package:go_router/go_router.dart';
 
-class AccidentReportScreen extends StatefulWidget {
-  const AccidentReportScreen({super.key});
+class AccidentReportPage extends StatefulWidget {
+  const AccidentReportPage({super.key});
 
   @override
-  State<AccidentReportScreen> createState() => _AccidentReportScreenState();
+  State<AccidentReportPage> createState() => _AccidentReportPageState();
 }
 
-class _AccidentReportScreenState extends State<AccidentReportScreen> {
+class _AccidentReportPageState extends State<AccidentReportPage> {
   final _descriptionController = TextEditingController();
 
   @override
@@ -60,11 +60,9 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
 
         // Navigate to camera screen
         if (context.mounted) {
-          final File? capturedImage = await Navigator.push<File>(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CameraScreen(camera: cameras.first),
-            ),
+          final File? capturedImage = await context.push<File>(
+            '/camera',
+            extra: cameras.first,
           );
 
           if (capturedImage != null && context.mounted) {
@@ -132,8 +130,8 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Go back to home
+                context.pop(); // Close dialog
+                context.pop(); // Go back to home
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green[700],
@@ -189,12 +187,12 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('Cancel', style: GoogleFonts.inter()),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
+              context.pop();
               _openCamera(context);
             },
             child: Text('Retry', style: GoogleFonts.inter()),
@@ -222,12 +220,12 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('Cancel', style: GoogleFonts.inter()),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
+              context.pop();
               openAppSettings();
             },
             child: Text('Open Settings', style: GoogleFonts.inter()),
@@ -277,7 +275,7 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
               ),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
               ),
             ),
             body: Form(

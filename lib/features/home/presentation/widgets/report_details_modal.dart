@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -120,7 +121,7 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.pop(),
                   icon: Icon(Icons.close, color: Colors.grey[600]),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.grey[100],
@@ -454,7 +455,7 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
           child: ElevatedButton.icon(
             onPressed: () {
               // TODO: Implement view on map
-              Navigator.pop(context);
+              context.pop();
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -498,7 +499,7 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
           child: OutlinedButton.icon(
             onPressed: () {
               // TODO: Implement share
-              Navigator.pop(context);
+              context.pop();
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -562,14 +563,9 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
   }
 
   void _showFullImage(int initialIndex) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FullScreenImageGallery(
-          imageUrls: widget.imageUrls,
-          initialIndex: initialIndex,
-        ),
-      ),
+    context.push(
+      '/gallery',
+      extra: {'imageUrls': widget.imageUrls, 'initialIndex': initialIndex},
     );
   }
 }
@@ -665,7 +661,7 @@ class _FullScreenImageGalleryState extends State<FullScreenImageGallery> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     icon: const Icon(Icons.close, color: Colors.white),
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.black.withValues(alpha: 0.5),

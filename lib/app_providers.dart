@@ -20,9 +20,9 @@ import 'package:eyesos/features/home/domain/repositories/i_accident_repository.d
 import 'package:eyesos/features/home/data/repositories/accident_repository_impl.dart';
 import 'package:eyesos/features/home/data/datasources/accident_remote_datasource.dart';
 import 'package:eyesos/features/home/domain/usecases/load_recent_reports_usecase.dart';
+import 'package:eyesos/features/home/domain/usecases/send_report_accident_usecase.dart';
 import 'package:eyesos/features/root/bloc/location/location_bloc.dart';
 import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
-import 'package:eyesos/features/root/repository/accident_report_repository.dart';
 import 'package:eyesos/features/root/bloc/road_risk/road_risk_bloc.dart';
 import 'package:eyesos/features/root/bloc/road_risk/road_risk_event.dart';
 import 'package:eyesos/features/root/repository/road_risk_repository.dart';
@@ -75,8 +75,12 @@ class AppProviders extends StatelessWidget {
           ),
           BlocProvider(create: (context) => LocationBloc()),
           BlocProvider(
-            create: (context) =>
-                AccidentReportBloc(context.read<AccidentReportRepository>()),
+            create: (context) {
+              final repo = context.read<IAccidentRepository>();
+              return AccidentReportBloc(
+                sendReportAccidentUseCase: SendReportAccidentUsecase(repo),
+              );
+            },
           ),
           BlocProvider(
             create: (context) {
