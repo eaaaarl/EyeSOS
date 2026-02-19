@@ -5,7 +5,7 @@ import 'package:eyesos/features/auth/validation/password.dart';
 
 enum SigninStatus { initial, loading, success, failure }
 
-enum GoogleSignInStatus { initial, loading, success, failure }
+enum GoogleSignInStatus { idle, initial, loading, success, failure }
 
 class SigninState extends Equatable {
   const SigninState({
