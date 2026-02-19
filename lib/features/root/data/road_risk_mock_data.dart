@@ -31,6 +31,70 @@ class RoadRiskMockData {
     return base;
   }
 
+  static List<int> getHourlyScores(int wayId, String name) {
+    final n = name.toLowerCase();
+    List<int> hourlyScores = [];
+
+    for (int hour = 0; hour < 24; hour++) {
+      int base;
+      if (highRiskKeywords.any((k) => n.contains(k))) {
+        final isCritical = wayId % 3 == 0;
+        base = isCritical ? 75 + (wayId % 20) : 55 + (wayId % 20);
+      } else if (moderateRiskKeywords.any((k) => n.contains(k))) {
+        base = 35 + (wayId % 20);
+      } else {
+        final roll = wayId % 10;
+        if (roll < 1) {
+          base = 80 + (wayId % 15);
+        } else if (roll < 3) {
+          base = 55 + (wayId % 20);
+        } else if (roll < 5) {
+          base = 30 + (wayId % 25);
+        } else if (roll < 7) {
+          base = 10 + (wayId % 20);
+        } else {
+          base = wayId % 10;
+        }
+      }
+      hourlyScores.add(getPeakHourAdjustedScore(base, hour));
+    }
+    return hourlyScores;
+  }
+
+  // Returns the safest hour range label
+  static String getSafestTimeLabel(int wayId, String name) {
+    final scores = getHourlyScores(wayId, name);
+    int minScore = 999;
+    int safestHour = 0;
+    for (int i = 0; i < scores.length; i++) {
+      if (scores[i] < minScore) {
+        minScore = scores[i];
+        safestHour = i;
+      }
+    }
+    return _formatHour(safestHour);
+  }
+
+  // Returns the peak (most dangerous) hour label
+  static String getPeakTimeLabel(int wayId, String name) {
+    final scores = getHourlyScores(wayId, name);
+    int maxScore = 0;
+    int peakHour = 0;
+    for (int i = 0; i < scores.length; i++) {
+      if (scores[i] > maxScore) {
+        maxScore = scores[i];
+        peakHour = i;
+      }
+    }
+    return _formatHour(peakHour);
+  }
+
+  static String _formatHour(int hour) {
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final h = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return '$h:00 $period';
+  }
+
   static RoadSegment assignMockRisk(
     int wayId,
     String name,

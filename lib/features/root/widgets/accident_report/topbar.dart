@@ -43,12 +43,22 @@ class TopBar extends StatelessWidget {
                           color: Colors.black,
                         ),
                       ),
-                      Text(
-                        'Lianga, Surigao del Sur',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: Colors.black.withValues(alpha: 0.8),
-                        ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 14,
+                            color: Colors.black.withValues(alpha: 0.8),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Lianga, Surigao del Sur',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: Colors.black.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

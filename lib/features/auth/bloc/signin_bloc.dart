@@ -95,7 +95,6 @@ class SigninBloc extends Bloc<SigninEvent, SigninState> {
         ),
       );
     } catch (e) {
-      print('catch response: ${e.toString()}');
       emit(
         state.copyWith(
           googleSignInStatus: GoogleSignInStatus.failure,

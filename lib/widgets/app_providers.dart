@@ -9,6 +9,7 @@ import 'package:eyesos/features/root/bloc/accidents/accident_report_bloc.dart';
 import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
 import 'package:eyesos/features/root/bloc/location/location_bloc.dart';
+import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
 import 'package:eyesos/features/root/repository/accident_report_repository.dart';
 import 'package:eyesos/features/root/bloc/road_risk/road_risk_bloc.dart';
 import 'package:eyesos/features/root/bloc/road_risk/road_risk_event.dart';
@@ -39,10 +40,7 @@ class AppProviders extends StatelessWidget {
           BlocProvider(
             create: (context) => SigninBloc(context.read<AuthRepository>()),
           ),
-          BlocProvider(
-            create: (context) =>
-                LocationBloc() /* ..add(FetchLocationRequested()) */,
-          ),
+          BlocProvider(create: (context) => LocationBloc()),
           BlocProvider(
             create: (context) =>
                 AccidentReportBloc(context.read<AccidentReportRepository>()),
@@ -64,6 +62,7 @@ class AppProviders extends StatelessWidget {
                 RoadRiskBloc(repository: context.read<RoadRiskRepository>())
                   ..add(const FetchRoadRiskRequested()),
           ),
+          BlocProvider(create: (context) => MapBloc()),
         ],
         child: const MyApp(),
       ),
