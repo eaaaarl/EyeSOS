@@ -1,4 +1,8 @@
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
+import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
+import 'package:eyesos/features/root/bloc/map/map_event.dart';
+import 'package:eyesos/features/root/bloc/map/map_state.dart';
+import 'package:eyesos/features/root/data/road_risk_mock_data.dart';
 import 'package:eyesos/features/root/widgets/accident_report/control_button.dart';
 import 'package:eyesos/features/root/widgets/accident_report/map_skeleton.dart';
 import 'package:eyesos/features/root/widgets/accident_report/no_internet_fallback.dart';
@@ -39,15 +43,7 @@ class _MapsTableViewState extends State<MapsTableView>
   final MapController _mapController = MapController();
   bool _isMapReady = false;
 
-  // UI status state
-  bool _showRoads = true;
-  bool _showLegend = true;
-
-  // Manual centering flag
   bool _shouldCenterOnNextLocation = false;
-
-  // Tapped road popup
-  RoadSegment? _tappedRoad;
 
   String _selectedMapStyle = 'standard';
 
@@ -145,136 +141,142 @@ class _MapsTableViewState extends State<MapsTableView>
                       ? roadRiskState.message
                       : null;
 
-                  return Scaffold(
-                    body: Stack(
-                      children: [
-                        // ── Map ────────────────────────────────────────────────────
-                        _buildMap(locationState, roads),
+                  return BlocBuilder<MapBloc, MapState>(
+                    builder: (context, mapState) {
+                      return Scaffold(
+                        body: Stack(
+                          children: [
+                            // ── Map ────────────────────────────────────────────────────
+                            _buildMap(locationState, roads, mapState),
 
-                        // ── Loading skeleton ───────────────────────────────────────
-                        if (!_isMapReady) const MapSkeleton(),
+                            // ── Loading skeleton ───────────────────────────────────────
+                            if (!_isMapReady) const MapSkeleton(),
 
-                        if (_isMapReady) ...[
-                          // ── Top bar ────────────────────────────────────────────
-                          _buildTopBar(),
+                            if (_isMapReady) ...[
+                              // ── Top bar ────────────────────────────────────────────
+                              _buildTopBar(),
 
-                          // ── Road loading indicator ─────────────────────────────
-                          if (isLoadingRoads)
-                            Positioned(
-                              top: 100,
-                              left: 16,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      blurRadius: 6,
+                              // ── Road loading indicator ─────────────────────────────
+                              if (isLoadingRoads)
+                                Positioned(
+                                  top: 100,
+                                  left: 16,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
                                     ),
-                                  ],
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 12,
-                                      height: 12,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Color(0xFF2563eb),
-                                      ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Loading road risk…',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                          // ── Road error banner ──────────────────────────────────
-                          if (roadsError != null)
-                            Positioned(
-                              top: 80,
-                              left: 16,
-                              right: 80,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade50,
-                                  border: Border.all(
-                                    color: Colors.red.shade200,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.warning_amber_rounded,
-                                      color: Colors.red,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    const Expanded(
-                                      child: Text(
-                                        'Road data unavailable',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.red,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          blurRadius: 6,
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                    GestureDetector(
-                                      onTap: () =>
-                                          context.read<RoadRiskBloc>().add(
-                                            const FetchRoadRiskRequested(
-                                              forceRefresh: true,
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          width: 12,
+                                          height: 12,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Color(0xFF2563eb),
+                                          ),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Loading road risk…',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                              // ── Road error banner ──────────────────────────────────
+                              if (roadsError != null)
+                                Positioned(
+                                  top: 80,
+                                  left: 16,
+                                  right: 80,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade50,
+                                      border: Border.all(
+                                        color: Colors.red.shade200,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.warning_amber_rounded,
+                                          color: Colors.red,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        const Expanded(
+                                          child: Text(
+                                            'Road data unavailable',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.red,
                                             ),
                                           ),
-                                      child: const Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.red,
-                                          decoration: TextDecoration.underline,
                                         ),
-                                      ),
+                                        GestureDetector(
+                                          onTap: () =>
+                                              context.read<RoadRiskBloc>().add(
+                                                const FetchRoadRiskRequested(
+                                                  forceRefresh: true,
+                                                ),
+                                              ),
+                                          child: const Text(
+                                            'Retry',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.red,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
 
-                          // ── Road tap popup card (bottom anchored) ─────────────
-                          if (_tappedRoad != null)
-                            _buildRoadPopup(_tappedRoad!),
+                              /* if (_tappedRoad != null)
+                                _buildRoadPopup(_tappedRoad!), */
 
-                          // ── Legend ─────────────────────────────────────────────
-                          if (_showLegend && _showRoads && !isLoadingRoads)
-                            _buildLegend(),
+                              // ── Legend ─────────────────────────────────────────────
+                              if (mapState.showLegend &&
+                                  mapState.showRoadRisk &&
+                                  !isLoadingRoads)
+                                _buildLegend(),
 
-                          // ── Control buttons ────────────────────────────────────
-                          _buildControlButtons(locationState),
-                        ],
-                      ],
-                    ),
+                              // ── Control buttons ────────────────────────────────────
+                              _buildControlButtons(locationState),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   );
                 },
               );
@@ -284,12 +286,6 @@ class _MapsTableViewState extends State<MapsTableView>
       ),
     );
   }
-
-  // ── Map widget ──────────────────────────────────────────────────────────────
-
-  // ── Tap detection ────────────────────────────────────────────────────────────
-  // Finds the road whose polyline passes closest to the tapped LatLng.
-  // Threshold: ~30 meters — close enough to feel accurate, forgiving enough to tap easily.
 
   static const double _tapThresholdMeters = 30.0;
   final Distance _distance = const Distance();
@@ -311,18 +307,15 @@ class _MapsTableViewState extends State<MapsTableView>
     }
 
     if (nearest != null && nearestDist <= _tapThresholdMeters) {
-      setState(() {
-        _tappedRoad = nearest;
-      });
-    } else {
-      // Tapped empty area — dismiss
-      setState(() {
-        _tappedRoad = null;
-      });
+      _showRoadBottomSheet(nearest);
     }
   }
 
-  Widget _buildMap(LocationState locationState, List<RoadSegment> roads) {
+  Widget _buildMap(
+    LocationState locationState,
+    List<RoadSegment> roads,
+    MapState mapState,
+  ) {
     return FlutterMap(
       mapController: _mapController,
       options: MapOptions(
@@ -335,14 +328,12 @@ class _MapsTableViewState extends State<MapsTableView>
         onTap: (tapPos, latlng) => _onMapTap(tapPos, latlng, roads),
       ),
       children: [
-        // Base tiles
         TileLayer(
           urlTemplate: _mapStyles[_selectedMapStyle]!,
           userAgentPackageName: dotenv.env['PACKAGE_NAME']!,
         ),
 
-        // ── Risk road polylines (replaces heatmap) ──────────────────────────
-        if (_showRoads && roads.isNotEmpty)
+        if (mapState.showRoadRisk && roads.isNotEmpty)
           PolylineLayer(
             polylines: roads
                 .map(
@@ -355,7 +346,6 @@ class _MapsTableViewState extends State<MapsTableView>
                 .toList(),
           ),
 
-        // User location marker (unchanged from your original)
         MarkerLayer(
           markers: [
             if (locationState is LocationLoaded)
@@ -374,8 +364,6 @@ class _MapsTableViewState extends State<MapsTableView>
     );
   }
 
-  // ── Top bar (unchanged) ─────────────────────────────────────────────────────
-
   Widget _buildTopBar() {
     return TopBar(
       selectedMapStyle: _selectedMapStyle,
@@ -383,220 +371,388 @@ class _MapsTableViewState extends State<MapsTableView>
     );
   }
 
-  // ── Road tap popup card ──────────────────────────────────────────────────────
-
-  Widget _buildRoadPopup(RoadSegment road) {
+  void _showRoadBottomSheet(RoadSegment road) {
     final color = road.riskLevel.color;
     final scoreFraction = (road.riskScore / 100).clamp(0.0, 1.0);
 
-    return Positioned(
-      left: 16,
-      right: 16,
-      top: 100,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        builder: (context, value, child) => Opacity(
-          opacity: value,
-          child: Transform.translate(
-            offset: Offset(0, -16 * (1 - value)),
-            child: child,
-          ),
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        child: Material(
-          elevation: 12,
-          borderRadius: BorderRadius.circular(20),
-          shadowColor: color.withValues(alpha: 0.2),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // ── Colored top strip ──────────────────────────────────────
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.09),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
+
+            // Colored header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.09)),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _riskIcon(road.riskLevel),
+                      color: Colors.white,
+                      size: 22,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _riskIcon(road.riskLevel),
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              road.riskLevel.label.toUpperCase(),
-                              style: TextStyle(
-                                color: color,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 14,
-                                letterSpacing: 0.6,
-                              ),
-                            ),
-                            const Text(
-                              'RISK LEVEL',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 9,
-                                letterSpacing: 1.2,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Dismiss button
-                      GestureDetector(
-                        onTap: () => setState(() {
-                          _tappedRoad = null;
-                        }),
-                        child: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.07),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            size: 15,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // ── Body ───────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Column(
+                  const SizedBox(width: 12),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Road name
-                      Row(
-                        children: [
-                          const Icon(Icons.route, size: 14, color: Colors.grey),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              road.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                                color: Colors.black87,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Score bar
-                      Row(
-                        children: [
-                          const Text(
-                            'Risk Score',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${road.riskScore}/100',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: color,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: scoreFraction,
-                          minHeight: 7,
-                          backgroundColor: Colors.grey.shade100,
-                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                      Text(
+                        road.riskLevel.label.toUpperCase(),
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          letterSpacing: 0.6,
                         ),
                       ),
-                      const SizedBox(height: 12),
-
-                      // Accident count
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: road.accidentCount > 0
-                              ? Colors.orange.shade50
-                              : Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.warning_amber_rounded,
-                              size: 15,
-                              color: road.accidentCount > 0
-                                  ? Colors.orange.shade600
-                                  : Colors.grey,
-                            ),
-                            const SizedBox(width: 7),
-                            Text(
-                              road.accidentCount > 0
-                                  ? '${road.accidentCount} accident${road.accidentCount > 1 ? "s" : ""} recorded'
-                                  : 'No accidents recorded',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: road.accidentCount > 0
-                                    ? Colors.orange.shade700
-                                    : Colors.grey,
-                              ),
-                            ),
-                          ],
+                      const Text(
+                        'RISK LEVEL',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 9,
+                          letterSpacing: 1.2,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+
+            // Body
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Road name
+                  Row(
+                    children: [
+                      const Icon(Icons.route, size: 14, color: Colors.grey),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          road.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Score bar
+                  Row(
+                    children: [
+                      const Text(
+                        'Risk Score',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${road.riskScore}/100',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: color,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: scoreFraction,
+                      minHeight: 7,
+                      backgroundColor: Colors.grey.shade100,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Accident count
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: road.accidentCount > 0
+                          ? Colors.orange.shade50
+                          : Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          size: 15,
+                          color: road.accidentCount > 0
+                              ? Colors.orange.shade600
+                              : Colors.grey,
+                        ),
+                        const SizedBox(width: 7),
+                        Text(
+                          road.accidentCount > 0
+                              ? '${road.accidentCount} accident${road.accidentCount > 1 ? "s" : ""} recorded'
+                              : 'No accidents recorded',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: road.accidentCount > 0
+                                ? Colors.orange.shade700
+                                : Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Time risk
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade100),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 14,
+                              color: Colors.blue,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'TIME INSIGHTS',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.blue,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _timeChip(
+                                icon: Icons.warning_amber_rounded,
+                                label: 'Peak Risk',
+                                value: RoadRiskMockData.getPeakTimeLabel(
+                                  road.id,
+                                  road.name,
+                                ),
+                                color: Colors.red.shade400,
+                                bgColor: Colors.red.shade50,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _timeChip(
+                                icon: Icons.check_circle_outline_rounded,
+                                label: 'Safest Time',
+                                value: RoadRiskMockData.getSafestTimeLabel(
+                                  road.id,
+                                  road.name,
+                                ),
+                                color: Colors.green.shade600,
+                                bgColor: Colors.green.shade50,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Current hour indicator
+                        _buildHourlyBar(road),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _timeChip({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required Color bgColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 12, color: color),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              color: color,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHourlyBar(RoadSegment road) {
+    final scores = RoadRiskMockData.getHourlyScores(road.id, road.name);
+    final currentHour = DateTime.now().hour;
+
+    // Show 6-hour window centered on current hour
+    final startHour = (currentHour - 3).clamp(0, 18);
+    final visibleHours = List.generate(6, (i) => startHour + i);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Risk by hour (today)',
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.grey,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: visibleHours.map((hour) {
+            final score = scores[hour];
+            final isNow = hour == currentHour;
+            final barColor = RoadRiskMockData.scoreToRisk(score).color;
+            final maxHeight = 36.0;
+            final barHeight = (score / 100 * maxHeight).clamp(4.0, maxHeight);
+
+            return Column(
+              children: [
+                if (isNow)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'now',
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 14),
+                const SizedBox(height: 2),
+                Container(
+                  width: 28,
+                  height: barHeight,
+                  decoration: BoxDecoration(
+                    color: isNow ? barColor : barColor.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(4),
+                    border: isNow
+                        ? Border.all(color: Colors.blue, width: 1.5)
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatHourShort(hour),
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: isNow ? Colors.blue : Colors.grey,
+                    fontWeight: isNow ? FontWeight.w700 : FontWeight.w400,
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  String _formatHourShort(int hour) {
+    if (hour == 0) return '12a';
+    if (hour == 12) return '12p';
+    return hour > 12 ? '${hour - 12}p' : '${hour}a';
   }
 
   IconData _riskIcon(RiskLevel level) {
@@ -613,8 +769,6 @@ class _MapsTableViewState extends State<MapsTableView>
         return Icons.shield_rounded;
     }
   }
-
-  // ── Legend ──────────────────────────────────────────────────────────────────
 
   Widget _buildLegend() {
     return Positioned(
@@ -656,7 +810,7 @@ class _MapsTableViewState extends State<MapsTableView>
                 ),
                 const SizedBox(width: 24),
                 GestureDetector(
-                  onTap: () => setState(() => _showLegend = false),
+                  onTap: () => context.read<MapBloc>().add(ToggleLegend()),
                   child: const Icon(Icons.close, size: 16, color: Colors.grey),
                 ),
               ],
@@ -693,79 +847,75 @@ class _MapsTableViewState extends State<MapsTableView>
     );
   }
 
-  // ── Control buttons (same structure as your original) ───────────────────────
-
   Widget _buildControlButtons(LocationState locationState) {
-    return Positioned(
-      bottom: 20,
-      right: 16,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (locationState is LocationLoaded) ...[
-            LocationTimeBadge(locationState: locationState),
-            const SizedBox(height: 10),
-          ],
-
-          // Toggle risk roads (was: toggle heatmap)
-          ControlButton(
-            icon: _showRoads ? Icons.visibility : Icons.visibility_off,
-            tooltip: _showRoads ? 'Hide Risk Roads' : 'Show Risk Roads',
-            onPressed: () => setState(() => _showRoads = !_showRoads),
-            iconColor: Colors.red[700],
+    return BlocBuilder<MapBloc, MapState>(
+      builder: (context, mapState) {
+        return Positioned(
+          bottom: 20,
+          right: 16,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (locationState is LocationLoaded) ...[
+                LocationTimeBadge(locationState: locationState),
+                const SizedBox(height: 10),
+              ],
+              ControlButton(
+                icon: mapState.showRoadRisk
+                    ? Icons.visibility
+                    : Icons.visibility_off,
+                tooltip: mapState.showRoadRisk
+                    ? 'Hide Risk Roads'
+                    : 'Show Risk Roads',
+                onPressed: () => context.read<MapBloc>().add(ToggleRoads()),
+                iconColor: Colors.red[700],
+              ),
+              const SizedBox(height: 10),
+              if (!mapState.showLegend)
+                ControlButton(
+                  icon: Icons.legend_toggle,
+                  tooltip: 'Show Legend',
+                  onPressed: () => context.read<MapBloc>().add(ToggleLegend()),
+                  iconColor: Colors.red[700],
+                ),
+              const SizedBox(height: 10),
+              ControlButton(
+                icon: Icons.add,
+                tooltip: 'Zoom In',
+                iconColor: Colors.red[700],
+                onPressed: () {
+                  _mapController.move(
+                    _mapController.camera.center,
+                    _mapController.camera.zoom + 1,
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              ControlButton(
+                icon: Icons.remove,
+                tooltip: 'Zoom Out',
+                iconColor: Colors.red[700],
+                onPressed: () {
+                  _mapController.move(
+                    _mapController.camera.center,
+                    _mapController.camera.zoom - 1,
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              ControlButton(
+                icon: Icons.my_location,
+                tooltip: 'Center on Current Location',
+                iconColor: Colors.white,
+                color: Colors.red[700],
+                onPressed: () => _centerOnLocation(locationState),
+                isLoading: locationState is LocationLoading && _isMapReady,
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-
-          // Show legend
-          if (!_showLegend)
-            ControlButton(
-              icon: Icons.legend_toggle,
-              tooltip: 'Show Legend',
-              onPressed: () => setState(() => _showLegend = true),
-              iconColor: Colors.red[700],
-            ),
-          const SizedBox(height: 10),
-
-          // Zoom in
-          ControlButton(
-            icon: Icons.add,
-            tooltip: 'Zoom In',
-            iconColor: Colors.red[700],
-            onPressed: () {
-              _mapController.move(
-                _mapController.camera.center,
-                _mapController.camera.zoom + 1,
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-
-          // Zoom out
-          ControlButton(
-            icon: Icons.remove,
-            tooltip: 'Zoom Out',
-            iconColor: Colors.red[700],
-            onPressed: () {
-              _mapController.move(
-                _mapController.camera.center,
-                _mapController.camera.zoom - 1,
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-
-          // Center on location
-          ControlButton(
-            icon: Icons.my_location,
-            tooltip: 'Center on Current Location',
-            iconColor: Colors.white,
-            color: Colors.red[700],
-            onPressed: () => _centerOnLocation(locationState),
-            isLoading: locationState is LocationLoading && _isMapReady,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
