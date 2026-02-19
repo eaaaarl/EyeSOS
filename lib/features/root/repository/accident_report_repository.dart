@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:eyesos/features/root/models/accidents_reports_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AccidentReportRepository {
@@ -94,29 +93,6 @@ class AccidentReportRepository {
       // });
     } catch (e) {
       throw Exception('Failed to submit accident report: $e');
-    }
-  }
-
-  Future<List<AccidentReport>> getRecentsReports({
-    required String userId,
-    int page = 1,
-    int pageSize = 5,
-  }) async {
-    try {
-      final offset = (page - 1) * pageSize;
-
-      final response = await _supabase
-          .from('accidents')
-          .select('*, accident_images(*)')
-          .eq('reported_by', userId)
-          .order('created_at', ascending: false)
-          .range(offset, offset + pageSize - 1);
-
-      return (response as List)
-          .map((json) => AccidentReport.fromJson(json))
-          .toList();
-    } catch (e) {
-      rethrow;
     }
   }
 }

@@ -1,4 +1,4 @@
-import 'package:eyesos/features/root/screens/root_screen.dart';
+import 'package:eyesos/core/presentation/layouts/root_screen.dart';
 import 'package:eyesos/features/welcome/data/models/onboarding_model.dart';
 import 'package:eyesos/features/welcome/domain/entities/onboarding_entity.dart';
 import 'package:eyesos/features/welcome/presentation/widgets/onboarding_slide_widget.dart';

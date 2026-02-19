@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'package:eyesos/features/auth/presentation/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/presentation/bloc/session_state.dart';
-import 'package:eyesos/features/root/bloc/accidents/accident_report_bloc.dart';
-import 'package:eyesos/features/root/bloc/accidents/accident_report_event.dart';
-import 'package:eyesos/features/root/bloc/accidents/accident_report_state.dart';
-import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
-import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
+import 'package:eyesos/features/auth/bloc/session_bloc.dart';
+import 'package:eyesos/features/auth/bloc/session_state.dart';
+import 'package:eyesos/features/home/bloc/accident_report_bloc.dart';
+import 'package:eyesos/features/home/bloc/accident_report_event.dart';
+import 'package:eyesos/features/home/bloc/accident_report_state.dart';
+import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
+import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
 import 'package:eyesos/features/root/widgets/accident_report/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:formz/formz.dart';
@@ -252,7 +252,7 @@ class _AccidentReportScreenState extends State<AccidentReportScreen> {
           _showSuccessDialog();
 
           context.read<AccidentsReportLoadBloc>().add(
-            LoadRecentsReports(userId: userId),
+            LoadRecentReports(userId: userId),
           );
 
           context.read<AccidentReportBloc>().add(ReportFormReset());

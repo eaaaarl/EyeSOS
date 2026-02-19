@@ -9,13 +9,17 @@ import 'package:eyesos/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:eyesos/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:eyesos/features/auth/domain/usecases/sign_out_google_usecase.dart';
 import 'package:eyesos/features/auth/domain/usecases/has_phone_number_usecase.dart';
-import 'package:eyesos/features/auth/presentation/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/presentation/bloc/session_state.dart';
-import 'package:eyesos/features/auth/presentation/bloc/signin_bloc.dart';
-import 'package:eyesos/features/auth/presentation/bloc/signup_bloc.dart';
-import 'package:eyesos/features/root/bloc/accidents/accident_report_bloc.dart';
-import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
-import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
+import 'package:eyesos/features/auth/bloc/session_bloc.dart';
+import 'package:eyesos/features/auth/bloc/session_state.dart';
+import 'package:eyesos/features/auth/bloc/signin_bloc.dart';
+import 'package:eyesos/features/auth/bloc/signup_bloc.dart';
+import 'package:eyesos/features/home/bloc/accident_report_bloc.dart';
+import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
+import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
+import 'package:eyesos/features/home/domain/repositories/i_accident_repository.dart';
+import 'package:eyesos/features/home/data/repositories/accident_repository_impl.dart';
+import 'package:eyesos/features/home/data/datasources/accident_remote_datasource.dart';
+import 'package:eyesos/features/home/domain/usecases/load_recent_reports_usecase.dart';
 import 'package:eyesos/features/root/bloc/location/location_bloc.dart';
 import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
 import 'package:eyesos/features/root/repository/accident_report_repository.dart';
@@ -35,7 +39,10 @@ class AppProviders extends StatelessWidget {
         RepositoryProvider<IAuthRepository>(
           create: (context) => AuthRepositoryImpl(AuthRemoteDatasource()),
         ),
-        RepositoryProvider(create: (context) => AccidentReportRepository()),
+        RepositoryProvider<IAccidentRepository>(
+          create: (context) =>
+              AccidentRepositoryImpl(AccidentRemoteDatasource()),
+        ),
         RepositoryProvider(create: (context) => RoadRiskRepository()),
       ],
       child: MultiBlocProvider(
@@ -79,8 +86,10 @@ class AppProviders extends StatelessWidget {
                 userId = currentUser.userId;
               }
               return AccidentsReportLoadBloc(
-                context.read<AccidentReportRepository>(),
-              )..add(LoadRecentsReports(userId: userId));
+                loadRecentReportsUsecase: LoadRecentReportsUsecase(
+                  repository: context.read<IAccidentRepository>(),
+                ),
+              )..add(LoadRecentReports(userId: userId));
             },
           ),
           BlocProvider(

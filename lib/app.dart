@@ -1,4 +1,4 @@
-import 'package:eyesos/core/screens/splash_screen.dart';
+import 'package:eyesos/core/presentation/pages/splash_page.dart';
 import 'package:flutter/material.dart';
 
 class MyApp extends StatelessWidget {
