@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:eyesos/core/bloc/connectivity_event.dart';
 import 'package:eyesos/core/bloc/connectivity_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,85 +6,48 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 
 class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityStatus> {
   StreamSubscription<InternetStatus>? _subscription;
-  Timer? _debounceTimer;
+  Timer? _disconnectTimer;
   Timer? _retryTimer;
-  int _disconnectCount = 0;
+  bool _wasEverDisconnected = false;
 
-  static const Duration _debounceDisconnect = Duration(
-    seconds: 10,
-  ); // Wait 10s before showing "disconnected"
-  static const Duration _debounceConnect = Duration(
-    seconds: 5,
-  ); // Wait 5s before showing "connected"
-  static const int _requiredDisconnectsBeforeAlert =
-      1; // Need 1 disconnect signal before alerting
-
-  // Retry settings
-  static const Duration _retryInterval = Duration(
-    seconds: 5,
-  ); // Auto-retry every 5s when disconnected
+  // Facebook-like timing
+  static const Duration _disconnectDelay = Duration(seconds: 3);
+  static const Duration _retryInterval = Duration(seconds: 5);
 
   ConnectivityBloc() : super(ConnectivityStatus.connected) {
     on<ConnectivityChanged>(_onConnectivityChanged);
     on<CheckConnectivity>(_onCheckConnectivity);
     on<RetryConnection>(_onRetryConnection);
 
-    // Listen to internet status changes
     _subscription = InternetConnection().onStatusChange.listen(
       (status) => add(ConnectivityChanged(status)),
       onError: (_) => add(ConnectivityChanged(InternetStatus.disconnected)),
     );
   }
 
-  Future<void> _onConnectivityChanged(
+  void _onConnectivityChanged(
     ConnectivityChanged event,
     Emitter<ConnectivityStatus> emit,
-  ) async {
-    _debounceTimer?.cancel();
-
+  ) {
     final isConnected = event.status == InternetStatus.connected;
 
     if (isConnected) {
-      _disconnectCount = 0;
+      _disconnectTimer?.cancel();
       _retryTimer?.cancel();
 
-      // Don't show "connected" if we were never disconnected
-      if (state == ConnectivityStatus.connected) {
-        return;
-      }
-
-      // Debounce the "connected" message to avoid flickering
-      await Future.delayed(_debounceConnect);
-
-      // Check if the emitter is still active before emitting
-      if (!emit.isDone) {
+      if (_wasEverDisconnected && state == ConnectivityStatus.disconnected) {
         emit(ConnectivityStatus.connected);
+        _wasEverDisconnected = false;
       }
       return;
     }
 
-    // Handle disconnection with retry logic
-    _disconnectCount++;
-
-    // Only show disconnected after multiple signals (more lenient)
-    if (_disconnectCount < _requiredDisconnectsBeforeAlert) {
-      return;
-    }
-
-    // Debounce the "disconnected" message
-    await Future.delayed(_debounceDisconnect);
-
-    // Check if the emitter is still active and we're still disconnected
-    if (!emit.isDone && !isConnected) {
-      emit(ConnectivityStatus.disconnected);
-      _startRetryTimer();
-    }
-  }
-
-  void _startRetryTimer() {
-    _retryTimer?.cancel();
-    _retryTimer = Timer.periodic(_retryInterval, (timer) {
+    // Cancel previous timer and start a new debounce
+    _disconnectTimer?.cancel();
+    _disconnectTimer = Timer(_disconnectDelay, () {
       if (!isClosed) {
+        _wasEverDisconnected = true;
+        // Use CheckConnectivity to verify before emitting disconnected
         add(CheckConnectivity());
       }
     });
@@ -98,11 +60,16 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityStatus> {
     final hasConnection = await InternetConnection().hasInternetAccess;
 
     if (hasConnection) {
-      _disconnectCount = 0;
       _retryTimer?.cancel();
-      emit(ConnectivityStatus.connected);
-    } else if (state != ConnectivityStatus.disconnected) {
-      emit(ConnectivityStatus.disconnected);
+      if (state == ConnectivityStatus.disconnected) {
+        _wasEverDisconnected = false;
+        emit(ConnectivityStatus.connected);
+      }
+    } else {
+      if (state != ConnectivityStatus.disconnected) {
+        _wasEverDisconnected = true;
+        emit(ConnectivityStatus.disconnected);
+      }
       _startRetryTimer();
     }
   }
@@ -112,20 +79,29 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityStatus> {
     Emitter<ConnectivityStatus> emit,
   ) async {
     emit(ConnectivityStatus.checking);
+
     final hasConnection = await InternetConnection().hasInternetAccess;
 
     if (hasConnection) {
-      _disconnectCount = 0;
       _retryTimer?.cancel();
+      _wasEverDisconnected = false;
       emit(ConnectivityStatus.connected);
     } else {
       emit(ConnectivityStatus.disconnected);
+      _startRetryTimer();
     }
+  }
+
+  void _startRetryTimer() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer.periodic(_retryInterval, (_) {
+      if (!isClosed) add(CheckConnectivity());
+    });
   }
 
   @override
   Future<void> close() {
-    _debounceTimer?.cancel();
+    _disconnectTimer?.cancel();
     _retryTimer?.cancel();
     _subscription?.cancel();
     return super.close();
