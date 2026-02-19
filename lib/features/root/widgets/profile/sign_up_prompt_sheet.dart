@@ -1,4 +1,4 @@
-import 'package:eyesos/features/auth/screens/sign_up_screen.dart';
+import 'package:eyesos/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:eyesos/features/root/widgets/profile/login_prompt_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -81,10 +81,10 @@ class SignUpPromptSheet extends StatelessWidget {
               ),
               child: ElevatedButton(
                 onPressed: () {
-                  //Navigator.pop(context);
+                  Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                    MaterialPageRoute(builder: (_) => const SignUpPage()),
                   );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

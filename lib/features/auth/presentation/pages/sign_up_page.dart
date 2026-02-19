@@ -1,30 +1,30 @@
-import 'package:eyesos/features/auth/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/bloc/session_event.dart';
-import 'package:eyesos/features/auth/bloc/signup_bloc.dart';
-import 'package:eyesos/features/auth/bloc/signup_event.dart';
-import 'package:eyesos/features/auth/bloc/signup_state.dart';
-import 'package:eyesos/features/auth/validation/confirm_password.dart';
-import 'package:eyesos/features/auth/validation/email.dart';
-import 'package:eyesos/features/auth/validation/name.dart';
-import 'package:eyesos/features/auth/validation/password.dart';
-import 'package:eyesos/features/auth/validation/phone_number.dart';
-import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
-import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
-import 'package:eyesos/features/root/screens/root_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
+import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
+import 'package:eyesos/features/root/screens/root_screen.dart';
+import '../bloc/session_bloc.dart';
+import '../bloc/session_event.dart';
+import '../bloc/signup_bloc.dart';
+import '../bloc/signup_event.dart';
+import '../bloc/signup_state.dart';
+import '../validation/confirm_password.dart';
+import '../validation/email.dart';
+import '../validation/name.dart';
+import '../validation/password.dart';
+import '../validation/phone_number.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -168,7 +168,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // App Logo/Icon
                       Center(
                             child: Container(
                               padding: const EdgeInsets.all(20),
@@ -187,7 +186,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                 ],
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.remove_red_eye,
                                 size: 50,
                                 color: Colors.white,
@@ -197,10 +196,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           .animate()
                           .scale(duration: 600.ms, curve: Curves.easeOut)
                           .shimmer(delay: 600.ms, duration: 1000.ms),
-
                       const SizedBox(height: 32),
-
-                      // Header
                       Text(
                         'Create Account',
                         style: GoogleFonts.poppins(
@@ -209,9 +205,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           color: Colors.grey[800],
                         ),
                       ).animate().fadeIn(delay: 200.ms).slideY(),
-
                       const SizedBox(height: 8),
-
                       Text(
                         'Join EyeSOS to report emergencies and help your community stay safe',
                         style: GoogleFonts.inter(
@@ -220,10 +214,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           height: 1.5,
                         ),
                       ).animate().fadeIn(delay: 300.ms).slideY(),
-
                       const SizedBox(height: 32),
-
-                      // Full Name Field
                       BlocBuilder<SignupBloc, SignupState>(
                         buildWhen: (previous, current) =>
                             previous.name != current.name,
@@ -246,10 +237,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 400.ms).slideX(),
-
                       const SizedBox(height: 16),
-
-                      // Email Field
                       BlocBuilder<SignupBloc, SignupState>(
                         buildWhen: (previous, current) =>
                             previous.email != current.email,
@@ -272,10 +260,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 450.ms).slideX(),
-
                       const SizedBox(height: 16),
-
-                      // Phone Number Field
                       BlocBuilder<SignupBloc, SignupState>(
                         buildWhen: (previous, current) =>
                             previous.phoneNumber != current.phoneNumber,
@@ -305,10 +290,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 500.ms).slideX(),
-
                       const SizedBox(height: 16),
-
-                      // Password Field
                       BlocBuilder<SignupBloc, SignupState>(
                         buildWhen: (previous, current) =>
                             previous.password != current.password,
@@ -344,10 +326,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 550.ms).slideX(),
-
                       const SizedBox(height: 16),
-
-                      // Confirm Password Field
                       BlocBuilder<SignupBloc, SignupState>(
                         buildWhen: (previous, current) =>
                             previous.confirmedPassword !=
@@ -395,10 +374,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 600.ms).slideX(),
-
                       const SizedBox(height: 24),
-
-                      // Info Banner
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -422,7 +398,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 color: Colors.blue[700],
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.info_outline,
                                 color: Colors.white,
                                 size: 20,
@@ -442,10 +418,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                         ),
                       ).animate().fadeIn(delay: 650.ms).slideY(),
-
                       const SizedBox(height: 32),
-
-                      // Sign Up Button
                       BlocBuilder<SignupBloc, SignupState>(
                         buildWhen: (previous, current) =>
                             previous.status != current.status ||
@@ -521,10 +494,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 700.ms).slideY(),
-
                       const SizedBox(height: 24),
-
-                      // Terms and Privacy
                       Text(
                         'By creating an account, you agree to our Terms of Service and Privacy Policy',
                         textAlign: TextAlign.center,
@@ -534,10 +504,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           height: 1.5,
                         ),
                       ).animate().fadeIn(delay: 750.ms),
-
                       const SizedBox(height: 24),
-
-                      // Already have account
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -563,7 +530,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ],
                       ).animate().fadeIn(delay: 800.ms),
-
                       const SizedBox(height: 20),
                     ],
                   ),

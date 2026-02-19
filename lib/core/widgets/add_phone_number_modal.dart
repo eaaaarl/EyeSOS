@@ -1,5 +1,5 @@
-import 'package:eyesos/features/auth/models/user_model.dart';
-import 'package:eyesos/features/auth/repository/auth_repository.dart';
+import 'package:eyesos/features/auth/domain/entities/user_entity.dart';
+import 'package:eyesos/features/auth/domain/repositories/i_auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,7 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 class AddPhoneNumberModal extends StatefulWidget {
   final String userId;
-  final Function(UserModel user) onComplete;
+  final Function(UserEntity user) onComplete;
 
   const AddPhoneNumberModal({
     super.key,
@@ -59,7 +59,7 @@ class _AddPhoneNumberModalState extends State<AddPhoneNumberModal> {
     });
 
     try {
-      final authRepo = context.read<AuthRepository>();
+      final authRepo = context.read<IAuthRepository>();
       await authRepo.updatePhoneNumber(widget.userId, phone);
       final updatedUser = await authRepo.getCurrentUser(widget.userId);
       if (mounted) {

@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:eyesos/features/auth/models/user_model.dart';
-import 'package:eyesos/features/auth/validation/email.dart';
-import 'package:eyesos/features/auth/validation/password.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../data/models/user_model.dart';
+import '../validation/email.dart';
+import '../validation/password.dart';
 
 enum SigninStatus { initial, loading, success, failure }
 
@@ -29,7 +30,7 @@ class SigninState extends Equatable {
   final Password password;
   final bool isValid;
   final String? errorMessage;
-  final UserModel? user;
+  final UserEntity? user;
   final bool hasPhoneNumber;
 
   SigninState copyWith({
@@ -40,7 +41,7 @@ class SigninState extends Equatable {
     Password? password,
     bool? isValid,
     String? errorMessage,
-    UserModel? user,
+    UserEntity? user,
     bool? hasPhoneNumber,
   }) {
     return SigninState(
@@ -58,7 +59,7 @@ class SigninState extends Equatable {
   }
 
   Map<String, dynamic> toMap() {
-    return {'status': status.index, 'user': user?.toJson()};
+    return {'status': status.index, 'user': (user as UserModel?)?.toJson()};
   }
 
   factory SigninState.fromMap(Map<String, dynamic> map) {

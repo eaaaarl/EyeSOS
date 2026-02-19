@@ -1,5 +1,5 @@
-import 'package:eyesos/features/auth/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/bloc/session_state.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_bloc.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_state.dart';
 import 'package:eyesos/features/root/widgets/profile/help_dialog.dart';
 import 'package:eyesos/features/root/widgets/profile/login_prompt_sheet.dart';
 import 'package:eyesos/features/root/widgets/profile/logout_dialog.dart';

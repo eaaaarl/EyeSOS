@@ -1,8 +1,8 @@
-import 'package:eyesos/features/auth/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/bloc/session_event.dart';
-import 'package:eyesos/features/auth/bloc/signin_bloc.dart';
-import 'package:eyesos/features/auth/bloc/signin_event.dart';
-import 'package:eyesos/features/auth/screens/sign_in_screen.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_bloc.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_event.dart';
+import 'package:eyesos/features/auth/presentation/bloc/signin_bloc.dart';
+import 'package:eyesos/features/auth/presentation/bloc/signin_event.dart';
+import 'package:eyesos/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -57,7 +57,7 @@ class LogoutDialog extends StatelessWidget {
             context.read<SessionBloc>().add(AuthLoggedOut());
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const SignInScreen()),
+              MaterialPageRoute(builder: (context) => const SignInPage()),
               (route) => false,
             );
           },

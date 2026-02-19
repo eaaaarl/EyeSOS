@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:eyesos/features/auth/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/bloc/session_state.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_bloc.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_state.dart';
 import 'package:eyesos/features/root/bloc/accidents/accident_report_bloc.dart';
 import 'package:eyesos/features/root/bloc/accidents/accident_report_event.dart';
 import 'package:eyesos/features/root/bloc/accidents/accident_report_state.dart';

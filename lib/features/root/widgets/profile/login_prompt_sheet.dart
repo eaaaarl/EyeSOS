@@ -1,12 +1,12 @@
 import 'package:eyesos/core/widgets/add_phone_number_modal.dart';
-import 'package:eyesos/features/auth/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/bloc/session_event.dart';
-import 'package:eyesos/features/auth/bloc/signin_bloc.dart';
-import 'package:eyesos/features/auth/bloc/signin_event.dart';
-import 'package:eyesos/features/auth/bloc/signin_state.dart';
-import 'package:eyesos/features/auth/models/user_model.dart';
-import 'package:eyesos/features/auth/screens/sign_in_screen.dart';
-import 'package:eyesos/features/auth/widgets/oauth_widget.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_bloc.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_event.dart';
+import 'package:eyesos/features/auth/presentation/bloc/signin_bloc.dart';
+import 'package:eyesos/features/auth/presentation/bloc/signin_event.dart';
+import 'package:eyesos/features/auth/presentation/bloc/signin_state.dart';
+import 'package:eyesos/features/auth/domain/entities/user_entity.dart';
+import 'package:eyesos/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:eyesos/features/auth/presentation/widgets/oauth_widget.dart';
 import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
 import 'package:eyesos/features/root/widgets/profile/sign_up_prompt_sheet.dart';
@@ -42,7 +42,7 @@ class LoginPromptSheet extends StatelessWidget {
               isDismissible: false,
               builder: (modalContext) => AddPhoneNumberModal(
                 userId: state.user!.id,
-                onComplete: (UserModel user) {
+                onComplete: (UserEntity user) {
                   Navigator.pop(modalContext);
                   parentContext.read<AccidentsReportLoadBloc>().add(
                     RefreshReports(userId: user.id),
@@ -201,7 +201,7 @@ class LoginPromptSheet extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       parentContext,
-                      MaterialPageRoute(builder: (_) => const SignInScreen()),
+                      MaterialPageRoute(builder: (_) => const SignInPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(

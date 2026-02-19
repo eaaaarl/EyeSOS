@@ -1,9 +1,9 @@
-import 'package:eyesos/features/auth/models/user_model.dart';
+import '../../domain/entities/user_entity.dart';
 
 abstract class SessionEvent {}
 
 class AuthLoggedIn extends SessionEvent {
-  final UserModel user;
+  final UserEntity user;
 
   AuthLoggedIn(this.user);
 }

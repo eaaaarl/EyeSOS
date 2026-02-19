@@ -1,6 +1,7 @@
 import 'package:eyesos/features/root/screens/root_screen.dart';
-import 'package:eyesos/features/welcome/model/onboarding_model.dart';
-import 'package:eyesos/features/welcome/widgets/onboarding_slide_widget.dart';
+import 'package:eyesos/features/welcome/data/models/onboarding_model.dart';
+import 'package:eyesos/features/welcome/domain/entities/onboarding_entity.dart';
+import 'package:eyesos/features/welcome/presentation/widgets/onboarding_slide_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,8 +17,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<OnboardingPage> _pages = [
-    OnboardingPage(
+  final List<OnboardingEntity> _pages = [
+    OnboardingModel(
       title: 'Real-Time Accident Monitoring',
       description:
           'View live heatmaps showing accident-prone areas and high-risk zones in your city.',
@@ -25,7 +26,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       color: Colors.red[700]!,
       imagePath: 'assets/images/onboarding-1.png',
     ),
-    OnboardingPage(
+    OnboardingModel(
       title: 'Track Accident Hotspots',
       description:
           'Identify dangerous roads and intersections based on historical accident data.',
@@ -33,7 +34,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       color: Colors.orange[700]!,
       imagePath: 'assets/images/onboarding-2.png',
     ),
-    OnboardingPage(
+    OnboardingModel(
       title: 'Report Road Incidents',
       description:
           'Help improve road safety by reporting accidents and hazards in real-time.',

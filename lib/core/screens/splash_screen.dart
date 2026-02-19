@@ -1,7 +1,7 @@
-import 'package:eyesos/features/auth/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/bloc/session_state.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_bloc.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_state.dart';
 import 'package:eyesos/features/root/screens/root_screen.dart';
-import 'package:eyesos/features/welcome/screens/welcome.dart';
+import 'package:eyesos/features/welcome/presentation/pages/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';

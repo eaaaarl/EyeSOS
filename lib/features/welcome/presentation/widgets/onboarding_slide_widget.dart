@@ -1,8 +1,8 @@
-import 'package:eyesos/features/welcome/model/onboarding_model.dart';
+import 'package:eyesos/features/welcome/domain/entities/onboarding_entity.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingSlide extends StatelessWidget {
-  final OnboardingPage page;
+  final OnboardingEntity page;
 
   const OnboardingSlide({super.key, required this.page});
 

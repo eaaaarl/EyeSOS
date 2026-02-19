@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-class OnboardingPage {
+class OnboardingEntity {
   final String title;
   final String description;
   final IconData icon;
   final Color color;
-  final String imagePath; // Add this
+  final String imagePath;
 
-  OnboardingPage({
+  OnboardingEntity({
     required this.title,
     required this.description,
     required this.icon,
     required this.color,
-    required this.imagePath, // Add this
+    required this.imagePath,
   });
 }

@@ -1,10 +1,18 @@
 import 'package:eyesos/app.dart';
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
-import 'package:eyesos/features/auth/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/bloc/session_state.dart';
-import 'package:eyesos/features/auth/bloc/signin_bloc.dart';
-import 'package:eyesos/features/auth/bloc/signup_bloc.dart';
-import 'package:eyesos/features/auth/repository/auth_repository.dart';
+import 'package:eyesos/features/auth/domain/repositories/i_auth_repository.dart';
+import 'package:eyesos/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:eyesos/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:eyesos/features/auth/domain/usecases/signin_usecase.dart';
+import 'package:eyesos/features/auth/domain/usecases/signin_with_google_usecase.dart';
+import 'package:eyesos/features/auth/domain/usecases/signup_usecase.dart';
+import 'package:eyesos/features/auth/domain/usecases/sign_out_usecase.dart';
+import 'package:eyesos/features/auth/domain/usecases/sign_out_google_usecase.dart';
+import 'package:eyesos/features/auth/domain/usecases/has_phone_number_usecase.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_bloc.dart';
+import 'package:eyesos/features/auth/presentation/bloc/session_state.dart';
+import 'package:eyesos/features/auth/presentation/bloc/signin_bloc.dart';
+import 'package:eyesos/features/auth/presentation/bloc/signup_bloc.dart';
 import 'package:eyesos/features/root/bloc/accidents/accident_report_bloc.dart';
 import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
@@ -24,7 +32,9 @@ class AppProviders extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider(create: (context) => AuthRepository()),
+        RepositoryProvider<IAuthRepository>(
+          create: (context) => AuthRepositoryImpl(AuthRemoteDatasource()),
+        ),
         RepositoryProvider(create: (context) => AccidentReportRepository()),
         RepositoryProvider(create: (context) => RoadRiskRepository()),
       ],
@@ -32,13 +42,29 @@ class AppProviders extends StatelessWidget {
         providers: [
           BlocProvider(create: (context) => ConnectivityBloc()),
           BlocProvider(
-            create: (context) => SessionBloc(context.read<AuthRepository>()),
+            create: (context) {
+              final repo = context.read<IAuthRepository>();
+              return SessionBloc(
+                signOutUsecase: SignOutUsecase(repo),
+                signOutGoogleUsecase: SignOutGoogleUsecase(repo),
+              );
+            },
           ),
           BlocProvider(
-            create: (context) => SignupBloc(context.read<AuthRepository>()),
+            create: (context) {
+              final repo = context.read<IAuthRepository>();
+              return SignupBloc(signupUsecase: SignupUsecase(repo));
+            },
           ),
           BlocProvider(
-            create: (context) => SigninBloc(context.read<AuthRepository>()),
+            create: (context) {
+              final repo = context.read<IAuthRepository>();
+              return SigninBloc(
+                signInUsecase: SignInUsecase(repo),
+                signInWithGoogleUsecase: SignInWithGoogleUsecase(repo),
+                hasPhoneNumberUsecase: HasPhoneNumberUsecase(repo),
+              );
+            },
           ),
           BlocProvider(create: (context) => LocationBloc()),
           BlocProvider(

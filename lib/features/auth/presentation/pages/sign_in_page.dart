@@ -1,30 +1,31 @@
-import 'package:eyesos/features/auth/bloc/session_bloc.dart';
-import 'package:eyesos/features/auth/bloc/session_event.dart';
-import 'package:eyesos/features/auth/bloc/signin_bloc.dart';
-import 'package:eyesos/features/auth/bloc/signin_event.dart';
-import 'package:eyesos/features/auth/bloc/signin_state.dart';
-import 'package:eyesos/features/auth/models/user_model.dart';
-import 'package:eyesos/features/auth/screens/sign_up_screen.dart';
-import 'package:eyesos/features/auth/validation/email.dart';
-import 'package:eyesos/features/auth/validation/password.dart';
-import 'package:eyesos/features/auth/widgets/oauth_widget.dart';
-import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
-import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
-import 'package:eyesos/features/root/screens/root_screen.dart';
-import 'package:eyesos/core/widgets/add_phone_number_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:eyesos/features/auth/domain/entities/user_entity.dart';
+import 'package:eyesos/features/root/bloc/accidents/accidents_report_load_bloc.dart';
+import 'package:eyesos/features/root/bloc/accidents/accidents_reports_load_event.dart';
+import 'package:eyesos/features/root/screens/root_screen.dart';
+import 'package:eyesos/core/widgets/add_phone_number_modal.dart';
+import '../../data/models/user_model.dart';
+import '../bloc/session_bloc.dart';
+import '../bloc/session_event.dart';
+import '../bloc/signin_bloc.dart';
+import '../bloc/signin_event.dart';
+import '../bloc/signin_state.dart';
+import '../validation/email.dart';
+import '../validation/password.dart';
+import '../widgets/oauth_widget.dart';
+import 'sign_up_page.dart';
 
-class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+class SignInPage extends StatefulWidget {
+  const SignInPage({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  State<SignInPage> createState() => _SignInPageState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignInPageState extends State<SignInPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -59,7 +60,6 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  // Google Sign In Handler
   Future<void> _handleGoogleSignIn() async {
     context.read<SigninBloc>().add(const GoogleSigninRequested());
   }
@@ -83,9 +83,9 @@ class _SignInScreenState extends State<SignInScreen> {
       isDismissible: false,
       builder: (modalContext) => AddPhoneNumberModal(
         userId: state.user!.id,
-        onComplete: (UserModel user) {
-          Navigator.pop(modalContext); // Close modal
-          _navigateToHome(context, user); // Now refresh and go home
+        onComplete: (UserEntity user) {
+          Navigator.pop(modalContext);
+          _navigateToHome(context, user as UserModel);
         },
       ),
     );
@@ -114,7 +114,7 @@ class _SignInScreenState extends State<SignInScreen> {
               _emailController.clear();
               _passwordController.clear();
               if (state.hasPhoneNumber) {
-                _navigateToHome(context, state.user!);
+                _navigateToHome(context, state.user as UserModel);
               } else {
                 _showPhoneModal(context, state);
               }
@@ -151,8 +151,6 @@ class _SignInScreenState extends State<SignInScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-
-                      // App Logo/Icon with animation
                       Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
@@ -170,7 +168,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ),
                               ],
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.remove_red_eye,
                               size: 70,
                               color: Colors.white,
@@ -179,10 +177,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           .animate()
                           .scale(duration: 600.ms, curve: Curves.easeOut)
                           .shimmer(delay: 600.ms, duration: 1000.ms),
-
                       const SizedBox(height: 32),
-
-                      // Header
                       Text(
                         'Welcome Back',
                         style: GoogleFonts.poppins(
@@ -191,9 +186,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           color: Colors.grey[800],
                         ),
                       ).animate().fadeIn(delay: 200.ms).slideY(),
-
                       const SizedBox(height: 8),
-
                       Text(
                         'Sign in to report emergencies and stay connected',
                         textAlign: TextAlign.center,
@@ -203,10 +196,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           height: 1.5,
                         ),
                       ).animate().fadeIn(delay: 300.ms).slideY(),
-
                       const SizedBox(height: 48),
-
-                      // Email Field
                       BlocBuilder<SigninBloc, SigninState>(
                         buildWhen: (previous, current) =>
                             previous.email != current.email,
@@ -270,10 +260,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 400.ms).slideX(),
-
                       const SizedBox(height: 20),
-
-                      // Password Field
                       BlocBuilder<SigninBloc, SigninState>(
                         buildWhen: (previous, current) =>
                             previous.password != current.password,
@@ -356,10 +343,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 500.ms).slideX(),
-
                       const SizedBox(height: 12),
-
-                      // Forgot Password
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
@@ -388,10 +372,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ),
                       ).animate().fadeIn(delay: 600.ms),
-
                       const SizedBox(height: 24),
-
-                      // Sign In Button
                       BlocBuilder<SigninBloc, SigninState>(
                         buildWhen: (previous, current) =>
                             previous.status != current.status ||
@@ -467,15 +448,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 700.ms).slideY(),
-
                       const SizedBox(height: 24),
-
-                      // OR Divider - NOW HERE, AFTER SIGN IN BUTTON
-                      OAuthDivider().animate().fadeIn(delay: 750.ms),
-
+                      const OAuthDivider().animate().fadeIn(delay: 750.ms),
                       const SizedBox(height: 24),
-
-                      // Google Sign In Button - BELOW THE DIVIDER
                       BlocBuilder<SigninBloc, SigninState>(
                         builder: (context, state) {
                           return GoogleSignInButton(
@@ -486,10 +461,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           );
                         },
                       ).animate().fadeIn(delay: 800.ms).slideX(),
-
                       const Spacer(),
-
-                      // Sign Up Link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -505,7 +477,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const SignUpScreen(),
+                                  builder: (_) => const SignUpPage(),
                                 ),
                               );
                             },
@@ -520,7 +492,6 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ],
                       ).animate().fadeIn(delay: 900.ms),
-
                       const SizedBox(height: 20),
                     ],
                   ),
