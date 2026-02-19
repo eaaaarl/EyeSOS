@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final sessionState = context.read<SessionBloc>().state;
 
     if (sessionState is AuthAuthenticated) {
-      context.go('/');
+      context.go('/maps');
     } else {
       context.go('/welcome');
     }

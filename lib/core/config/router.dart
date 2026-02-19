@@ -15,14 +15,37 @@ import 'package:go_router/go_router.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
+// Reusable slide transition
+CustomTransitionPage _slideTransition({
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: Tween(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
+        child: child,
+      );
+    },
+  );
+}
+
 final GoRouter router = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
   routes: [
+    // Auth and onboarding — no custom transition needed, go() is used here
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/welcome', builder: (context, state) => const WelcomePage()),
     GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
     GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
+
+    // Shell — tabs persist in memory, no animation between them
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return RootScreen(navigationShell: navigationShell);
@@ -38,7 +61,11 @@ final GoRouter router = GoRouter(
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/', builder: (context, state) => const MapsTab()),
+            // Fixed: changed '/' to '/maps' to avoid root conflict
+            GoRoute(
+              path: '/maps',
+              builder: (context, state) => const MapsTab(),
+            ),
           ],
         ),
         StatefulShellBranch(
@@ -51,29 +78,33 @@ final GoRouter router = GoRouter(
         ),
       ],
     ),
+
+    // Routes that push OVER the shell — use push(), slide animation
     GoRoute(
       path: '/accident-report',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const AccidentReportPage(),
+      pageBuilder: (context, state) =>
+          _slideTransition(state: state, child: const AccidentReportPage()),
     ),
     GoRoute(
       path: '/camera',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final camera = state.extra as CameraDescription;
-        return CameraScreen(camera: camera);
-      },
+      pageBuilder: (context, state) => _slideTransition(
+        state: state,
+        child: CameraScreen(camera: state.extra as CameraDescription),
+      ),
     ),
     GoRoute(
       path: '/gallery',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final extra = state.extra as Map<String, dynamic>;
-        final imageUrls = extra['imageUrls'] as List<String>;
-        final initialIndex = extra['initialIndex'] as int;
-        return FullScreenImageGallery(
-          imageUrls: imageUrls,
-          initialIndex: initialIndex,
+        return _slideTransition(
+          state: state,
+          child: FullScreenImageGallery(
+            imageUrls: extra['imageUrls'] as List<String>,
+            initialIndex: extra['initialIndex'] as int,
+          ),
         );
       },
     ),
