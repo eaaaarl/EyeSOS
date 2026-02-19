@@ -3,7 +3,7 @@ import 'package:eyesos/features/root/widgets/accident_report/control_button.dart
 import 'package:eyesos/features/root/widgets/accident_report/map_skeleton.dart';
 import 'package:eyesos/features/root/widgets/accident_report/no_internet_fallback.dart';
 import 'package:eyesos/features/root/widgets/accident_report/topbar.dart';
-import 'package:eyesos/features/root/widgets/accident_report/user_location_marker.dart';
+import 'package:eyesos/features/root/widgets/map/user_location_marker.dart';
 import 'package:eyesos/features/root/widgets/map/location_time_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,19 +17,13 @@ import 'package:eyesos/features/root/models/road_risk.dart';
 import 'package:eyesos/features/root/bloc/road_risk/road_risk_bloc.dart';
 import 'package:eyesos/features/root/bloc/road_risk/road_risk_event.dart';
 import 'package:eyesos/features/root/bloc/road_risk/road_risk_state.dart';
-import 'package:eyesos/features/root/repository/road_risk_repository.dart';
 
 class MapsTab extends StatelessWidget {
   const MapsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          RoadRiskBloc(repository: RoadRiskRepository())
-            ..add(const FetchRoadRiskRequested()),
-      child: const MapsTableView(),
-    );
+    return const MapsTableView();
   }
 }
 
@@ -49,11 +43,13 @@ class _MapsTableViewState extends State<MapsTableView>
   bool _showRoads = true;
   bool _showLegend = true;
 
+  // Manual centering flag
+  bool _shouldCenterOnNextLocation = false;
+
   // Tapped road popup
   RoadSegment? _tappedRoad;
 
   String _selectedMapStyle = 'standard';
-  bool _hasRequestedLocationOnce = false;
 
   final Map<String, String> _mapStyles = {
     'standard': 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -65,29 +61,23 @@ class _MapsTableViewState extends State<MapsTableView>
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (!_hasRequestedLocationOnce) {
-        context.read<LocationBloc>().add(FetchLocationRequested());
-        _hasRequestedLocationOnce = true;
-      }
-    });
-  }
-
-  @override
   void dispose() {
     _mapController.dispose();
     super.dispose();
   }
 
   void _centerOnLocation(LocationState state) {
-    if (state is LocationLoaded && _isMapReady) {
+    if (!_isMapReady) return;
+
+    if (state is LocationLoaded) {
       _mapController.move(
         LatLng(state.location.latitude, state.location.longitude),
         15.0,
+      );
+    } else {
+      setState(() => _shouldCenterOnNextLocation = true);
+      context.read<LocationBloc>().add(
+        FetchLocationRequested(forceRefresh: true),
       );
     }
   }
@@ -126,9 +116,13 @@ class _MapsTableViewState extends State<MapsTableView>
         BlocListener<LocationBloc, LocationState>(
           listener: (context, state) {
             if (state is LocationLoaded && _isMapReady) {
-              _centerOnLocation(state);
+              if (_shouldCenterOnNextLocation) {
+                _centerOnLocation(state);
+                setState(() => _shouldCenterOnNextLocation = false);
+              }
             } else if (state is LocationError) {
               _showLocationError(state.message);
+              setState(() => _shouldCenterOnNextLocation = false);
             }
           },
         ),
@@ -167,7 +161,7 @@ class _MapsTableViewState extends State<MapsTableView>
                           // ── Road loading indicator ─────────────────────────────
                           if (isLoadingRoads)
                             Positioned(
-                              top: 80,
+                              top: 100,
                               left: 16,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -273,7 +267,8 @@ class _MapsTableViewState extends State<MapsTableView>
                             _buildRoadPopup(_tappedRoad!),
 
                           // ── Legend ─────────────────────────────────────────────
-                          if (_showLegend && _showRoads) _buildLegend(),
+                          if (_showLegend && _showRoads && !isLoadingRoads)
+                            _buildLegend(),
 
                           // ── Control buttons ────────────────────────────────────
                           _buildControlButtons(locationState),
