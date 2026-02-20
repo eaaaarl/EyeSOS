@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:eyesos/features/root/models/road_risk.dart';
+import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
 
 abstract class RoadRiskState extends Equatable {
   const RoadRiskState();
@@ -13,7 +13,7 @@ class RoadRiskInitial extends RoadRiskState {}
 class RoadRiskLoading extends RoadRiskState {}
 
 class RoadRiskLoaded extends RoadRiskState {
-  final List<RoadSegment> roads;
+  final List<RoadRiskEntity> roads;
 
   const RoadRiskLoaded(this.roads);
 

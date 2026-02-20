@@ -1,9 +1,9 @@
-import 'package:eyesos/features/root/bloc/location/location_state.dart';
-import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
-import 'package:eyesos/features/root/bloc/map/map_event.dart';
-import 'package:eyesos/features/root/bloc/map/map_state.dart';
-import 'package:eyesos/features/root/widgets/accident_report/control_button.dart';
-import 'package:eyesos/features/root/widgets/map/location_time_badge.dart';
+import 'package:eyesos/features/map/bloc/location_state.dart';
+import 'package:eyesos/features/map/bloc/map_bloc.dart';
+import 'package:eyesos/features/map/bloc/map_event.dart';
+import 'package:eyesos/features/map/bloc/map_state.dart';
+import 'package:eyesos/features/map/presentation/widgets/control_button.dart';
+import 'package:eyesos/features/map/presentation/widgets/location_time_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';

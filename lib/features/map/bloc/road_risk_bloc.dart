@@ -1,13 +1,13 @@
+import 'package:eyesos/features/map/domain/usecases/fetch_roads_usecases.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:eyesos/features/root/bloc/road_risk/road_risk_event.dart';
-import 'package:eyesos/features/root/bloc/road_risk/road_risk_state.dart';
-import 'package:eyesos/features/root/repository/road_risk_repository.dart';
+import 'package:eyesos/features/map/bloc/road_risk_event.dart';
+import 'package:eyesos/features/map/bloc/road_risk_state.dart';
 
 class RoadRiskBloc extends Bloc<RoadRiskEvent, RoadRiskState> {
-  final RoadRiskRepository _repository;
+  final FetchRoadsUseCase _fetchRoadsUseCase;
 
-  RoadRiskBloc({required RoadRiskRepository repository})
-    : _repository = repository,
+  RoadRiskBloc({required FetchRoadsUseCase fetchRoadsUseCase})
+    : _fetchRoadsUseCase = fetchRoadsUseCase,
       super(RoadRiskInitial()) {
     on<FetchRoadRiskRequested>(_onFetchRoadRiskRequested);
   }
@@ -18,7 +18,7 @@ class RoadRiskBloc extends Bloc<RoadRiskEvent, RoadRiskState> {
   ) async {
     emit(RoadRiskLoading());
     try {
-      final roads = await _repository.fetchRoads();
+      final roads = await _fetchRoadsUseCase.call();
       emit(RoadRiskLoaded(roads));
     } catch (e) {
       emit(RoadRiskError(e.toString()));

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:eyesos/features/root/models/location_model.dart';
+import 'package:eyesos/features/map/data/models/location_model.dart';
 
 abstract class LocationState extends Equatable {
   const LocationState();

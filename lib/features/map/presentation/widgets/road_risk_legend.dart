@@ -1,6 +1,6 @@
-import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
-import 'package:eyesos/features/root/bloc/map/map_event.dart';
-import 'package:eyesos/features/root/models/road_risk.dart';
+import 'package:eyesos/features/map/bloc/map_bloc.dart';
+import 'package:eyesos/features/map/bloc/map_event.dart';
+import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

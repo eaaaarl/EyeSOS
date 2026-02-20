@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:eyesos/features/root/bloc/location/location_state.dart';
+import 'package:eyesos/features/map/bloc/location_state.dart';
 
 class LocationTimeBadge extends StatelessWidget {
   final LocationState locationState;

@@ -1,11 +1,11 @@
 import 'dart:convert';
+import 'package:eyesos/features/map/data/models/road_risk_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:eyesos/features/root/models/road_risk.dart';
-import 'package:eyesos/features/root/data/road_risk_mock_data.dart';
+import 'package:eyesos/features/map/data/datasources/road_risk_mock_data.dart';
 
-class RoadRiskRepository {
+class MapRemoteDatasource {
   static const String _bbox = '8.55,125.98,8.72,126.18';
   static const List<String> _endpoints = [
     'https://overpass-api.de/api/interpreter',
@@ -13,7 +13,7 @@ class RoadRiskRepository {
     'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
   ];
 
-  Future<List<RoadSegment>> fetchRoads() async {
+  Future<List<RoadRiskModel>> fetchRoads() async {
     const query =
         '''
       [out:json][timeout:25];
@@ -36,7 +36,7 @@ class RoadRiskRepository {
 
         final json = jsonDecode(res.body) as Map<String, dynamic>;
         final ways = (json['elements'] as List?) ?? [];
-        final roads = <RoadSegment>[];
+        final roads = <RoadRiskModel>[];
 
         for (final way in ways) {
           final geometry = way['geometry'] as List?;

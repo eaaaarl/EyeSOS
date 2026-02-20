@@ -1,6 +1,6 @@
-import 'package:eyesos/features/root/bloc/location/location_event.dart';
-import 'package:eyesos/features/root/bloc/location/location_state.dart';
-import 'package:eyesos/features/root/models/location_model.dart';
+import 'package:eyesos/features/map/bloc/location_event.dart';
+import 'package:eyesos/features/map/bloc/location_state.dart';
+import 'package:eyesos/features/map/data/models/location_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';

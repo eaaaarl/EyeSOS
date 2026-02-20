@@ -1,28 +1,29 @@
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
 import 'package:eyesos/core/bloc/connectivity_state.dart';
-import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
-import 'package:eyesos/features/root/bloc/map/map_state.dart';
-import 'package:eyesos/features/root/widgets/accident_report/map_skeleton.dart';
-import 'package:eyesos/features/root/widgets/accident_report/topbar.dart';
-import 'package:eyesos/features/root/widgets/map/map_control_buttons.dart';
-import 'package:eyesos/features/root/widgets/map/road_risk_bottom_sheet.dart';
-import 'package:eyesos/features/root/widgets/map/road_risk_legend.dart';
-import 'package:eyesos/features/root/widgets/map/user_location_marker.dart';
+import 'package:eyesos/features/map/bloc/map_bloc.dart';
+import 'package:eyesos/features/map/bloc/map_state.dart';
+import 'package:eyesos/features/map/data/models/road_risk_model.dart';
+import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
+import 'package:eyesos/features/map/presentation/widgets/map_skeleton.dart';
+import 'package:eyesos/features/map/presentation/widgets/topbar.dart';
+import 'package:eyesos/features/map/presentation/widgets/map_control_buttons.dart';
+import 'package:eyesos/features/map/presentation/widgets/road_risk_bottom_sheet.dart';
+import 'package:eyesos/features/map/presentation/widgets/road_risk_legend.dart';
+import 'package:eyesos/features/map/presentation/widgets/user_location_marker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:eyesos/features/root/bloc/location/location_bloc.dart';
-import 'package:eyesos/features/root/bloc/location/location_event.dart';
-import 'package:eyesos/features/root/bloc/location/location_state.dart';
-import 'package:eyesos/features/root/models/road_risk.dart';
-import 'package:eyesos/features/root/bloc/road_risk/road_risk_bloc.dart';
-import 'package:eyesos/features/root/bloc/road_risk/road_risk_event.dart';
-import 'package:eyesos/features/root/bloc/road_risk/road_risk_state.dart';
+import 'package:eyesos/features/map/bloc/location_bloc.dart';
+import 'package:eyesos/features/map/bloc/location_event.dart';
+import 'package:eyesos/features/map/bloc/location_state.dart';
+import 'package:eyesos/features/map/bloc/road_risk_bloc.dart';
+import 'package:eyesos/features/map/bloc/road_risk_event.dart';
+import 'package:eyesos/features/map/bloc/road_risk_state.dart';
 
-class MapsTab extends StatelessWidget {
-  const MapsTab({super.key});
+class MapsPage extends StatelessWidget {
+  const MapsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +131,7 @@ class _MapsTableViewState extends State<MapsTableView>
                 builder: (context, roadRiskState) {
                   final roads = roadRiskState is RoadRiskLoaded
                       ? roadRiskState.roads
-                      : <RoadSegment>[];
+                      : <RoadRiskModel>[];
                   final isLoadingRoads = roadRiskState is RoadRiskLoading;
                   final roadsError = roadRiskState is RoadRiskError
                       ? roadRiskState.message
@@ -288,10 +289,14 @@ class _MapsTableViewState extends State<MapsTableView>
   static const double _tapThresholdMeters = 30.0;
   final Distance _distance = const Distance();
 
-  void _onMapTap(TapPosition tapPos, LatLng latlng, List<RoadSegment> roads) {
+  void _onMapTap(
+    TapPosition tapPos,
+    LatLng latlng,
+    List<RoadRiskEntity> roads,
+  ) {
     if (roads.isEmpty) return;
 
-    RoadSegment? nearest;
+    RoadRiskEntity? nearest;
     double nearestDist = double.infinity;
 
     for (final road in roads) {
@@ -311,7 +316,7 @@ class _MapsTableViewState extends State<MapsTableView>
 
   Widget _buildMap(
     LocationState locationState,
-    List<RoadSegment> roads,
+    List<RoadRiskEntity> roads,
     MapState mapState,
   ) {
     return FlutterMap(
@@ -369,7 +374,7 @@ class _MapsTableViewState extends State<MapsTableView>
     );
   }
 
-  void _showRoadBottomSheet(RoadSegment road) {
+  void _showRoadBottomSheet(RoadRiskEntity road) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,

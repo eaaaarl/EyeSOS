@@ -1,4 +1,5 @@
-import 'package:eyesos/features/root/models/road_risk.dart';
+import 'package:eyesos/features/map/data/models/road_risk_model.dart';
+import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
 import 'package:latlong2/latlong.dart';
 
 class RoadRiskMockData {
@@ -95,7 +96,7 @@ class RoadRiskMockData {
     return '$h:00 $period';
   }
 
-  static RoadSegment assignMockRisk(
+  static RoadRiskModel assignMockRisk(
     int wayId,
     String name,
     List<LatLng> coords,
@@ -134,7 +135,7 @@ class RoadRiskMockData {
     }
 
     final score = getPeakHourAdjustedScore(base, hour);
-    return RoadSegment(
+    return RoadRiskModel(
       id: wayId,
       name: name,
       coordinates: coords,

@@ -6,7 +6,7 @@ import 'package:eyesos/features/home/bloc/accident_report_event.dart';
 import 'package:eyesos/features/home/bloc/accident_report_state.dart';
 import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
-import 'package:eyesos/features/root/widgets/accident_report/section_header.dart';
+import 'package:eyesos/features/map/presentation/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:formz/formz.dart';
 import 'package:google_fonts/google_fonts.dart';

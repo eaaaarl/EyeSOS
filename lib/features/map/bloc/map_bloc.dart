@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:eyesos/features/root/bloc/map/map_event.dart';
-import 'package:eyesos/features/root/bloc/map/map_state.dart';
+import 'package:eyesos/features/map/bloc/map_event.dart';
+import 'package:eyesos/features/map/bloc/map_state.dart';
 
 class MapBloc extends Bloc<MapEvent, MapState> {
   MapBloc() : super(const MapState()) {

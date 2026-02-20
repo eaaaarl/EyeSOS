@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
-import 'package:eyesos/features/root/validations/description.dart';
+import 'package:eyesos/core/validation/description.dart';
 import 'package:formz/formz.dart';
 import 'package:geolocator/geolocator.dart';
 

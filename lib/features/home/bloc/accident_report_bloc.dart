@@ -1,5 +1,4 @@
 import 'package:eyesos/features/home/domain/usecases/send_report_accident_usecase.dart';
-import 'package:eyesos/features/root/validations/description.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,6 +6,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'accident_report_event.dart';
 import 'accident_report_state.dart';
+import 'package:eyesos/core/validation/description.dart';
 
 class AccidentReportBloc
     extends Bloc<AccidentReportEvent, AccidentReportState> {
