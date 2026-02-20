@@ -45,7 +45,7 @@ class _WelcomeScreenState extends State<WelcomePage> {
   ];
 
   void _navigateToMap() {
-    context.go('/');
+    context.go('/maps');
   }
 
   @override

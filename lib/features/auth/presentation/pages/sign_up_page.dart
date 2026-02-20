@@ -131,7 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
               context.read<SessionBloc>().add(AuthLoggedIn(state.user!));
 
-              context.go('/');
+              context.go('/maps');
             } else if (state.status == SignupStatus.failure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
