@@ -2,7 +2,8 @@ import 'package:eyesos/core/bloc/connectivity_bloc.dart';
 import 'package:eyesos/core/bloc/connectivity_state.dart';
 import 'package:eyesos/features/map/bloc/map_bloc.dart';
 import 'package:eyesos/features/map/bloc/map_state.dart';
-import 'package:eyesos/features/map/data/models/road_risk.dart';
+import 'package:eyesos/features/map/data/models/road_risk_model.dart';
+import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
 import 'package:eyesos/features/map/presentation/widgets/map_skeleton.dart';
 import 'package:eyesos/features/map/presentation/widgets/topbar.dart';
 import 'package:eyesos/features/map/presentation/widgets/map_control_buttons.dart';
@@ -130,7 +131,7 @@ class _MapsTableViewState extends State<MapsTableView>
                 builder: (context, roadRiskState) {
                   final roads = roadRiskState is RoadRiskLoaded
                       ? roadRiskState.roads
-                      : <RoadSegment>[];
+                      : <RoadRiskModel>[];
                   final isLoadingRoads = roadRiskState is RoadRiskLoading;
                   final roadsError = roadRiskState is RoadRiskError
                       ? roadRiskState.message
@@ -288,10 +289,14 @@ class _MapsTableViewState extends State<MapsTableView>
   static const double _tapThresholdMeters = 30.0;
   final Distance _distance = const Distance();
 
-  void _onMapTap(TapPosition tapPos, LatLng latlng, List<RoadSegment> roads) {
+  void _onMapTap(
+    TapPosition tapPos,
+    LatLng latlng,
+    List<RoadRiskEntity> roads,
+  ) {
     if (roads.isEmpty) return;
 
-    RoadSegment? nearest;
+    RoadRiskEntity? nearest;
     double nearestDist = double.infinity;
 
     for (final road in roads) {
@@ -311,7 +316,7 @@ class _MapsTableViewState extends State<MapsTableView>
 
   Widget _buildMap(
     LocationState locationState,
-    List<RoadSegment> roads,
+    List<RoadRiskEntity> roads,
     MapState mapState,
   ) {
     return FlutterMap(
@@ -369,7 +374,7 @@ class _MapsTableViewState extends State<MapsTableView>
     );
   }
 
-  void _showRoadBottomSheet(RoadSegment road) {
+  void _showRoadBottomSheet(RoadRiskEntity road) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,

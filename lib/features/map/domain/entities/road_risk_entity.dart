@@ -50,7 +50,7 @@ extension RiskLevelX on RiskLevel {
   }
 }
 
-class RoadSegment {
+class RoadRiskEntity {
   final int id;
   final String name;
   final List<LatLng> coordinates;
@@ -58,7 +58,7 @@ class RoadSegment {
   final int riskScore;
   final int accidentCount;
 
-  const RoadSegment({
+  const RoadRiskEntity({
     required this.id,
     required this.name,
     required this.coordinates,

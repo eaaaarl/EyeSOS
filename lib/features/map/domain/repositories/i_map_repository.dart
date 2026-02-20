@@ -1,5 +1,5 @@
-import 'package:eyesos/features/map/data/models/road_risk.dart';
+import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
 
 abstract class IMapRepository {
-  Future<List<RoadSegment>> fetchRoads();
+  Future<List<RoadRiskEntity>> fetchRoads();
 }

@@ -1,4 +1,4 @@
-import 'package:eyesos/features/map/data/models/road_risk.dart';
+import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
 import 'package:eyesos/features/map/domain/repositories/i_map_repository.dart';
 
 class FetchRoadsUseCase {
@@ -6,7 +6,7 @@ class FetchRoadsUseCase {
 
   FetchRoadsUseCase(this.mapRepositories);
 
-  Future<List<RoadSegment>> call() async {
+  Future<List<RoadRiskEntity>> call() async {
     return await mapRepositories.fetchRoads();
   }
 }

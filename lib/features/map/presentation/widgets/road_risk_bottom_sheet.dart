@@ -1,9 +1,9 @@
 import 'package:eyesos/features/map/data/datasources/road_risk_mock_data.dart';
-import 'package:eyesos/features/map/data/models/road_risk.dart';
+import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
 import 'package:flutter/material.dart';
 
 class RoadRiskBottomSheet extends StatelessWidget {
-  final RoadSegment road;
+  final RoadRiskEntity road;
 
   const RoadRiskBottomSheet({super.key, required this.road});
 
@@ -339,7 +339,7 @@ class _TimeChip extends StatelessWidget {
 // ── Hourly Risk Bar ────────────────────────────────────────────────────────────
 
 class _HourlyRiskBar extends StatelessWidget {
-  final RoadSegment road;
+  final RoadRiskEntity road;
 
   const _HourlyRiskBar({required this.road});
 
