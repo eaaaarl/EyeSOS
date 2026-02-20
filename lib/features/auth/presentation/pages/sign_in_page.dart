@@ -68,7 +68,7 @@ class _SignInPageState extends State<SignInPage> {
       RefreshReports(userId: user.id),
     );
     context.read<SessionBloc>().add(AuthLoggedIn(user));
-    context.go('/');
+    context.go('/maps');
   }
 
   void _showPhoneModal(BuildContext context, SigninState state) {
