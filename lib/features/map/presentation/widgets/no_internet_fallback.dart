@@ -1,7 +1,7 @@
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
 import 'package:eyesos/core/bloc/connectivity_event.dart';
-import 'package:eyesos/features/root/bloc/location/location_bloc.dart';
-import 'package:eyesos/features/root/bloc/location/location_event.dart';
+import 'package:eyesos/features/map/bloc/location_bloc.dart';
+import 'package:eyesos/features/map/bloc/location_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

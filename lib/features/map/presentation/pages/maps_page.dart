@@ -1,28 +1,28 @@
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
 import 'package:eyesos/core/bloc/connectivity_state.dart';
-import 'package:eyesos/features/root/bloc/map/map_bloc.dart';
-import 'package:eyesos/features/root/bloc/map/map_state.dart';
-import 'package:eyesos/features/root/widgets/accident_report/map_skeleton.dart';
-import 'package:eyesos/features/root/widgets/accident_report/topbar.dart';
-import 'package:eyesos/features/root/widgets/map/map_control_buttons.dart';
-import 'package:eyesos/features/root/widgets/map/road_risk_bottom_sheet.dart';
-import 'package:eyesos/features/root/widgets/map/road_risk_legend.dart';
-import 'package:eyesos/features/root/widgets/map/user_location_marker.dart';
+import 'package:eyesos/features/map/bloc/map_bloc.dart';
+import 'package:eyesos/features/map/bloc/map_state.dart';
+import 'package:eyesos/features/map/data/models/road_risk.dart';
+import 'package:eyesos/features/map/presentation/widgets/map_skeleton.dart';
+import 'package:eyesos/features/map/presentation/widgets/topbar.dart';
+import 'package:eyesos/features/map/presentation/widgets/map_control_buttons.dart';
+import 'package:eyesos/features/map/presentation/widgets/road_risk_bottom_sheet.dart';
+import 'package:eyesos/features/map/presentation/widgets/road_risk_legend.dart';
+import 'package:eyesos/features/map/presentation/widgets/user_location_marker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:eyesos/features/root/bloc/location/location_bloc.dart';
-import 'package:eyesos/features/root/bloc/location/location_event.dart';
-import 'package:eyesos/features/root/bloc/location/location_state.dart';
-import 'package:eyesos/features/root/models/road_risk.dart';
-import 'package:eyesos/features/root/bloc/road_risk/road_risk_bloc.dart';
-import 'package:eyesos/features/root/bloc/road_risk/road_risk_event.dart';
-import 'package:eyesos/features/root/bloc/road_risk/road_risk_state.dart';
+import 'package:eyesos/features/map/bloc/location_bloc.dart';
+import 'package:eyesos/features/map/bloc/location_event.dart';
+import 'package:eyesos/features/map/bloc/location_state.dart';
+import 'package:eyesos/features/map/bloc/road_risk_bloc.dart';
+import 'package:eyesos/features/map/bloc/road_risk_event.dart';
+import 'package:eyesos/features/map/bloc/road_risk_state.dart';
 
-class MapsTab extends StatelessWidget {
-  const MapsTab({super.key});
+class MapsPage extends StatelessWidget {
+  const MapsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

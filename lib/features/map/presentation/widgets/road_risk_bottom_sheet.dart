@@ -1,5 +1,5 @@
-import 'package:eyesos/features/root/data/road_risk_mock_data.dart';
-import 'package:eyesos/features/root/models/road_risk.dart';
+import 'package:eyesos/features/map/data/datasources/road_risk_mock_data.dart';
+import 'package:eyesos/features/map/data/models/road_risk.dart';
 import 'package:flutter/material.dart';
 
 class RoadRiskBottomSheet extends StatelessWidget {

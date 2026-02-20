@@ -1,4 +1,4 @@
-import 'package:eyesos/features/root/models/road_risk.dart';
+import 'package:eyesos/features/map/data/models/road_risk.dart';
 import 'package:latlong2/latlong.dart';
 
 class RoadRiskMockData {

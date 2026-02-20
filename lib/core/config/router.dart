@@ -7,15 +7,14 @@ import 'package:eyesos/features/home/presentation/pages/accident_report_page.dar
 import 'package:eyesos/features/home/presentation/pages/camera_page.dart';
 import 'package:eyesos/features/home/presentation/widgets/report_details_modal.dart';
 import 'package:eyesos/features/home/presentation/pages/home_page.dart';
+import 'package:eyesos/features/map/presentation/pages/maps_page.dart';
 import 'package:eyesos/features/profile/presentation/pages/profile_page.dart';
-import 'package:eyesos/features/root/screens/maps_tab.dart';
 import 'package:eyesos/features/welcome/presentation/pages/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-// Reusable slide transition
 CustomTransitionPage _slideTransition({
   required GoRouterState state,
   required Widget child,
@@ -39,13 +38,11 @@ final GoRouter router = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
   routes: [
-    // Auth and onboarding — no custom transition needed, go() is used here
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/welcome', builder: (context, state) => const WelcomePage()),
     GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
     GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
 
-    // Shell — tabs persist in memory, no animation between them
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return RootScreen(navigationShell: navigationShell);
@@ -61,10 +58,9 @@ final GoRouter router = GoRouter(
         ),
         StatefulShellBranch(
           routes: [
-            // Fixed: changed '/' to '/maps' to avoid root conflict
             GoRoute(
               path: '/maps',
-              builder: (context, state) => const MapsTab(),
+              builder: (context, state) => const MapsPage(),
             ),
           ],
         ),
@@ -79,7 +75,6 @@ final GoRouter router = GoRouter(
       ],
     ),
 
-    // Routes that push OVER the shell — use push(), slide animation
     GoRoute(
       path: '/accident-report',
       parentNavigatorKey: _rootNavigatorKey,

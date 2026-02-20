@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:eyesos/features/root/models/road_risk.dart';
+import 'package:eyesos/features/map/data/models/road_risk.dart';
 
 abstract class RoadRiskState extends Equatable {
   const RoadRiskState();
