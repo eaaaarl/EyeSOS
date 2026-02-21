@@ -14,6 +14,7 @@ class ReportItemCard extends StatelessWidget {
   final String? notes;
   final String imageUrl;
   final int imageCount;
+  final String? severity;
   final bool isLoading;
   final VoidCallback onTap;
 
@@ -29,6 +30,7 @@ class ReportItemCard extends StatelessWidget {
     required this.imageCount,
     required this.onTap,
     required this.isLast,
+    this.severity,
     this.isLoading = false,
   });
 
@@ -84,7 +86,7 @@ class ReportItemCard extends StatelessWidget {
                           // Title and ID
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.only(right: 4),
+                              padding: const EdgeInsets.only(right: 8),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -116,6 +118,16 @@ class ReportItemCard extends StatelessWidget {
                               ),
                             ),
                           ),
+
+                          // Severity Badge
+                          if (isLoading)
+                            Bone(
+                              width: 60,
+                              height: 22,
+                              borderRadius: BorderRadius.circular(6),
+                            )
+                          else if (severity != null)
+                            _buildSeverityBadge(severity!),
                         ],
                       ),
 
@@ -293,6 +305,79 @@ Widget _buildErrorWidget() {
     ),
     child: Icon(Icons.broken_image_outlined, color: Colors.grey[400]),
   );
+}
+
+Widget _buildSeverityBadge(String severity) {
+  final color = _getSeverityColor(severity);
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
+      ),
+      borderRadius: BorderRadius.circular(6),
+      border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
+      boxShadow: [
+        BoxShadow(
+          color: color.withValues(alpha: 0.1),
+          blurRadius: 4,
+          offset: const Offset(0, 1),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.4),
+                blurRadius: 2,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          severity.toUpperCase(),
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: color,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Color _getSeverityColor(String severity) {
+  final cleanSeverity = severity.toLowerCase().trim();
+  switch (cleanSeverity) {
+    case 'emergency':
+      return Colors.red[900]!;
+    case 'critical':
+      return Colors.red[700]!;
+    case 'high':
+      return Colors.orange[700]!;
+    case 'moderate':
+    case 'medium':
+      return Colors.yellow[700]!;
+    case 'minor':
+    case 'low':
+      return Colors.green;
+    default:
+      return Colors.grey[600]!;
+  }
 }
 
 Widget _buildCountOverlay(int count) {

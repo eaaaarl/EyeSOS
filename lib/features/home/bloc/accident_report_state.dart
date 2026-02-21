@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:eyesos/core/validation/description.dart';
+import 'package:eyesos/features/home/domain/entities/incident_severity_entity.dart';
 import 'package:formz/formz.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -15,6 +16,7 @@ class AccidentReportState extends Equatable {
   final bool isLoadingLocation;
   final String? locationError;
   final String? submitError;
+  final IncidentSeverityEntity? severity;
   final bool isSubmitSuccessfull;
   final DateTime? lastUpdated; // Add this field
 
@@ -29,6 +31,7 @@ class AccidentReportState extends Equatable {
     this.isLoadingLocation = false,
     this.isSubmitSuccessfull = false,
     this.locationError,
+    this.severity,
     this.submitError,
   });
 
@@ -41,6 +44,7 @@ class AccidentReportState extends Equatable {
     bool? isLoadingLocation,
     String? locationError,
     String? submitError,
+    IncidentSeverityEntity? severity,
     bool? isSubmitSuccessfull,
     bool? isValid, // Changed to nullable bool
     bool clearImage = false,
@@ -66,6 +70,7 @@ class AccidentReportState extends Equatable {
           ? null
           : (locationError ?? this.locationError),
       submitError: clearSubmitError ? null : (submitError ?? this.submitError),
+      severity: severity ?? this.severity,
       isSubmitSuccessfull: isSubmitSuccessfull ?? this.isSubmitSuccessfull,
       lastUpdated: lastUpdated ?? this.lastUpdated,
     );
@@ -76,7 +81,8 @@ class AccidentReportState extends Equatable {
   bool get isLocationValid => currentPosition != null;
 
   // Logic helper for the UI button
-  bool get canSubmit => isImageValid && isLocationValid && isValid;
+  bool get canSubmit =>
+      isImageValid && isLocationValid && isValid && severity != null;
 
   @override
   List<Object?> get props => [
@@ -89,6 +95,7 @@ class AccidentReportState extends Equatable {
     isLoadingLocation,
     locationError,
     submitError,
+    severity,
     isSubmitSuccessfull,
     lastUpdated,
   ];

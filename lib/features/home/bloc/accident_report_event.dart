@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:equatable/equatable.dart';
+import 'package:eyesos/features/home/domain/entities/incident_severity_entity.dart';
 
 abstract class AccidentReportEvent extends Equatable {
   const AccidentReportEvent();
@@ -36,6 +37,16 @@ class DescriptionChanged extends AccidentReportEvent {
 
   @override
   List<Object?> get props => [description];
+}
+
+// Event when severity changes
+class SeverityChanged extends AccidentReportEvent {
+  final IncidentSeverityEntity severity;
+
+  const SeverityChanged(this.severity);
+
+  @override
+  List<Object?> get props => [severity];
 }
 
 // Event to submit the accident report
