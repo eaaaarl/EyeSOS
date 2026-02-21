@@ -13,8 +13,8 @@ class ReportDetailsModal extends StatefulWidget {
   final DateTime createdAt;
   final String notes;
   final List<String> imageUrls;
-  final String? severity; // Optional: 'low', 'medium', 'high', 'critical'
-  final String? status; // Optional: 'pending', 'responding', 'resolved'
+  final String? severity;
+  final String? status;
 
   const ReportDetailsModal({
     super.key,
@@ -44,15 +44,20 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
   }
 
   Color _getSeverityColor() {
-    switch (widget.severity?.toLowerCase()) {
-      case 'critical':
+    final severity = widget.severity?.toLowerCase().trim();
+    switch (severity) {
+      case 'emergency':
         return Colors.red[900]!;
-      case 'high':
+      case 'critical':
         return Colors.red[700]!;
-      case 'medium':
+      case 'high':
         return Colors.orange[700]!;
-      case 'low':
+      case 'moderate':
+      case 'medium':
         return Colors.yellow[700]!;
+      case 'minor':
+      case 'low':
+        return Colors.green;
       default:
         return Colors.grey[600]!;
     }
@@ -189,7 +194,6 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
                   ),
 
                   const SizedBox(height: 20),
-
                   // Status and Severity Badges
                   Row(
                     children: [
@@ -206,6 +210,7 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
                           label: '${widget.severity!.toUpperCase()} SEVERITY',
                           icon: Icons.warning_amber_rounded,
                           color: _getSeverityColor(),
+                          isSeverity: true,
                         ),
                     ],
                   ),
@@ -356,23 +361,63 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
     required String label,
     required IconData icon,
     required Color color,
+    bool isSeverity = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        gradient: isSeverity
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withValues(alpha: 0.15),
+                  color.withValues(alpha: 0.05),
+                ],
+              )
+            : null,
+        color: !isSeverity ? color.withValues(alpha: 0.1) : null,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: color.withValues(alpha: isSeverity ? 0.4 : 0.3),
+          width: isSeverity ? 1.2 : 1,
+        ),
+        boxShadow: isSeverity
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.1),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
+          if (isSeverity)
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.4),
+                    blurRadius: 3,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            )
+          else
+            Icon(icon, size: 14, color: color),
+          const SizedBox(width: 8),
           Text(
             label,
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
               color: color,
               letterSpacing: 0.5,

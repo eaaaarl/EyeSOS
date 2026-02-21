@@ -14,6 +14,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:camera/camera.dart';
+import 'package:eyesos/features/home/domain/entities/incident_severity_entity.dart';
 import 'package:go_router/go_router.dart';
 
 class AccidentReportPage extends StatefulWidget {
@@ -351,19 +352,24 @@ class _AccidentReportPageState extends State<AccidentReportPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Step 1: Photo
-                          SectionHeader(
-                            number: '1',
-                            title: 'Take Photo',
-                            subtitle: 'Capture the accident scene',
-                          ),
-                          const SizedBox(height: 12),
                           _buildPhotoSection(),
 
                           const SizedBox(height: 24),
 
-                          // Step 2: Location
+                          // Step 2: Severity (Conditional or always present but highlighted after photo)
                           SectionHeader(
                             number: '2',
+                            title: 'Incident Severity',
+                            subtitle: 'How serious is the situation?',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildSeveritySection(),
+
+                          const SizedBox(height: 24),
+
+                          // Step 3: Location
+                          SectionHeader(
+                            number: '3',
                             title: 'Location',
                             subtitle: 'Your current position',
                           ),
@@ -372,9 +378,9 @@ class _AccidentReportPageState extends State<AccidentReportPage> {
 
                           const SizedBox(height: 24),
 
-                          // Step 3: Description
+                          // Step 4: Description
                           SectionHeader(
-                            number: '3',
+                            number: '4',
                             title: 'Description',
                             subtitle: 'What happened?',
                           ),
@@ -852,6 +858,13 @@ class _AccidentReportPageState extends State<AccidentReportPage> {
                       );
                       return;
                     }
+                    if (state.severity == null) {
+                      _showErrorSnackbar(
+                        context,
+                        'Please select the incident severity.',
+                      );
+                      return;
+                    }
                     final currentUser = context.read<SessionBloc>().state;
 
                     if (currentUser is AuthAuthenticated) {
@@ -902,6 +915,102 @@ class _AccidentReportPageState extends State<AccidentReportPage> {
                     ],
                   ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSeveritySection() {
+    return BlocBuilder<AccidentReportBloc, AccidentReportState>(
+      buildWhen: (previous, current) => previous.severity != current.severity,
+      builder: (context, state) {
+        return Column(
+          children: IncidentSeverityEntity.values.map((severity) {
+            final isSelected = state.severity == severity;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: InkWell(
+                onTap: () {
+                  context.read<AccidentReportBloc>().add(
+                    SeverityChanged(severity),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? severity.color.withValues(alpha: 0.1)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected
+                          ? severity.color
+                          : Colors.grey.withValues(alpha: 0.2),
+                      width: isSelected ? 2 : 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? severity.color
+                              : severity.color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          severity.icon,
+                          color: isSelected ? Colors.white : severity.color,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              severity.label,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected
+                                    ? severity.color
+                                    : Colors.grey[800],
+                              ),
+                            ),
+                            Text(
+                              severity.description,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isSelected)
+                        Icon(
+                          Icons.check_circle,
+                          color: severity.color,
+                          size: 24,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         );
       },
     );

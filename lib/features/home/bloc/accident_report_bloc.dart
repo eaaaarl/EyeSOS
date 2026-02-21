@@ -20,6 +20,7 @@ class AccidentReportBloc
     on<ImageRemoved>(_onImageRemoved);
     on<LocationRequested>(_onLocationRequested);
     on<DescriptionChanged>(_onDescriptionChanged);
+    on<SeverityChanged>(_onSeverityChanged);
     on<ReportSubmitted>(_onReportSubmitted);
     on<ReportFormReset>(_onReportFormReset);
   }
@@ -168,6 +169,13 @@ class AccidentReportBloc
     );
   }
 
+  void _onSeverityChanged(
+    SeverityChanged event,
+    Emitter<AccidentReportState> emit,
+  ) {
+    emit(state.copyWith(severity: event.severity));
+  }
+
   Future<void> _onReportSubmitted(
     ReportSubmitted event,
     Emitter<AccidentReportState> emit,
@@ -197,6 +205,7 @@ class AccidentReportBloc
         reporterName: event.reporterName,
         imageFile: state.imageUrl,
         reporterContact: event.phoneNumber,
+        severity: state.severity?.name,
         accuracy: state.currentPosition!.accuracy,
       );
 

@@ -92,6 +92,7 @@ class _HomeTabState extends State<HomePage> {
           createdAt: report.createdAt,
           notes: report.reporterNotes!,
           imageUrls: report.imageUrls,
+          severity: report.severity,
         ),
       ),
     );
