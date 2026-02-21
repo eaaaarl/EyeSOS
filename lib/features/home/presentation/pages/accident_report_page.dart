@@ -352,6 +352,11 @@ class _AccidentReportPageState extends State<AccidentReportPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Step 1: Photo
+                          SectionHeader(
+                            number: '1',
+                            title: 'Photo',
+                            subtitle: 'Upload a photo of the accident',
+                          ),
                           _buildPhotoSection(),
 
                           const SizedBox(height: 24),
