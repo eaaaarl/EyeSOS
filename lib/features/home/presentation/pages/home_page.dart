@@ -8,7 +8,7 @@ import 'package:eyesos/features/home/presentation/widgets/emergency_button_secti
 import 'package:eyesos/features/home/presentation/widgets/guest_notice_banner.dart';
 import 'package:eyesos/features/home/presentation/widgets/guest_signin_card.dart';
 import 'package:eyesos/features/home/presentation/widgets/home_hero_header.dart';
-import 'package:eyesos/features/home/presentation/widgets/login_prompt_modal.dart';
+import 'package:eyesos/core/presentation/widgets/login_prompt_sheet.dart';
 import 'package:eyesos/features/home/presentation/widgets/recent_reports_section.dart';
 import 'package:eyesos/features/home/presentation/widgets/report_details_modal.dart';
 import 'package:flutter/material.dart';
@@ -102,7 +102,19 @@ class _HomeTabState extends State<HomePage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const LoginPromptModal(),
+      builder: (context) => LoginPromptSheet(
+        parentContext: context,
+        description:
+            'Please sign in to report emergencies and access all features.',
+        benefits: const [
+          LoginBenefit(icon: Icons.report, text: 'Submit emergency reports'),
+          LoginBenefit(icon: Icons.history, text: 'Track report history'),
+          LoginBenefit(
+            icon: Icons.notifications_active,
+            text: 'Get real-time alerts',
+          ),
+        ],
+      ),
     );
   }
 

@@ -1,4 +1,4 @@
-import 'package:eyesos/features/profile/presentation/widgets/login_prompt_sheet.dart';
+import 'package:eyesos/core/presentation/widgets/login_prompt_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -112,8 +112,18 @@ class SignUpPromptSheet extends StatelessWidget {
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (context) =>
-                      LoginPromptSheet(parentContext: context),
+                  builder: (context) => LoginPromptSheet(
+                    parentContext: context,
+                    onSignUpPressed: () {
+                      context.pop();
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => const SignUpPromptSheet(),
+                      );
+                    },
+                  ),
                 );
               },
               child: Row(
