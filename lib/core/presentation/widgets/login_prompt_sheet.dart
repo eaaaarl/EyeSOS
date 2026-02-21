@@ -6,7 +6,6 @@ import 'package:eyesos/features/auth/bloc/signin_event.dart';
 import 'package:eyesos/features/auth/bloc/signin_state.dart';
 import 'package:eyesos/features/auth/domain/entities/user_entity.dart';
 import 'package:eyesos/features/auth/presentation/widgets/oauth_widget.dart';
-import 'package:eyesos/features/profile/presentation/widgets/sign_up_prompt_sheet.dart';
 import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
 import 'package:flutter/material.dart';
@@ -14,10 +13,36 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
+class LoginBenefit {
+  final IconData icon;
+  final String text;
+
+  const LoginBenefit({required this.icon, required this.text});
+}
+
 class LoginPromptSheet extends StatelessWidget {
-  const LoginPromptSheet({super.key, required this.parentContext});
+  const LoginPromptSheet({
+    super.key,
+    required this.parentContext,
+    this.title = 'Sign In Required',
+    this.description =
+        'Please sign in to access this feature and enjoy the full EyeSOS experience.',
+    this.benefits = const [
+      LoginBenefit(icon: Icons.history, text: 'Track report history'),
+      LoginBenefit(icon: Icons.person, text: 'Save your profile'),
+      LoginBenefit(
+        icon: Icons.notifications_active,
+        text: 'Get emergency alerts',
+      ),
+    ],
+    this.onSignUpPressed,
+  });
 
   final BuildContext parentContext;
+  final String title;
+  final String description;
+  final List<LoginBenefit> benefits;
+  final VoidCallback? onSignUpPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +52,7 @@ class LoginPromptSheet extends StatelessWidget {
             state.googleSignInStatus == GoogleSignInStatus.success;
         final isFailure =
             state.googleSignInStatus == GoogleSignInStatus.failure;
+
         if (isSuccess && state.user != null) {
           if (state.hasPhoneNumber) {
             context.pop();
@@ -54,13 +80,12 @@ class LoginPromptSheet extends StatelessWidget {
           }
         }
 
-        // Handle Google Sign In Error
         if (isFailure) {
           ScaffoldMessenger.of(parentContext).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
-                  Icon(Icons.error_outline, color: Colors.white),
+                  const Icon(Icons.error_outline, color: Colors.white),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -80,9 +105,9 @@ class LoginPromptSheet extends StatelessWidget {
         }
       },
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(parentContext).viewInsets.bottom,
@@ -120,7 +145,7 @@ class LoginPromptSheet extends StatelessWidget {
 
               // Title
               Text(
-                'Sign In Required',
+                title,
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -131,7 +156,7 @@ class LoginPromptSheet extends StatelessWidget {
 
               // Description
               Text(
-                'Please sign in to access this feature and enjoy the full EyeSOS experience.',
+                description,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 14,
@@ -142,31 +167,27 @@ class LoginPromptSheet extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Benefits
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
+              if (benefits.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: benefits.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final benefit = entry.value;
+                      final isLast = index == benefits.length - 1;
+                      return Column(
+                        children: [
+                          _BenefitRow(icon: benefit.icon, text: benefit.text),
+                          if (!isLast) const SizedBox(height: 12),
+                        ],
+                      );
+                    }).toList(),
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    const BenefitRow(
-                      icon: Icons.history,
-                      text: 'Track report history',
-                    ),
-                    const SizedBox(height: 12),
-                    const BenefitRow(
-                      icon: Icons.person,
-                      text: 'Save your profile',
-                    ),
-                    const SizedBox(height: 12),
-                    const BenefitRow(
-                      icon: Icons.notifications_active,
-                      text: 'Get emergency alerts',
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 24),
 
               BlocBuilder<SigninBloc, SigninState>(
@@ -180,9 +201,9 @@ class LoginPromptSheet extends StatelessWidget {
                   );
                 },
               ),
-              const SizedBox(height: 24),
-              OAuthDivider(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              const OAuthDivider(),
+              const SizedBox(height: 16),
 
               // Sign In Button
               Container(
@@ -199,6 +220,7 @@ class LoginPromptSheet extends StatelessWidget {
                 ),
                 child: ElevatedButton(
                   onPressed: () {
+                    context.pop();
                     context.push('/signin');
                   },
                   style: ElevatedButton.styleFrom(
@@ -210,12 +232,19 @@ class LoginPromptSheet extends StatelessWidget {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Sign In Now',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.email_outlined, size: 20),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Sign In with Email',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -223,15 +252,12 @@ class LoginPromptSheet extends StatelessWidget {
 
               // Create Account Link
               TextButton(
-                onPressed: () {
-                  context.pop();
-                  showModalBottomSheet(
-                    context: parentContext,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => const SignUpPromptSheet(),
-                  );
-                },
+                onPressed:
+                    onSignUpPressed ??
+                    () {
+                      context.pop();
+                      context.push('/signup');
+                    },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -262,11 +288,11 @@ class LoginPromptSheet extends StatelessWidget {
   }
 }
 
-class BenefitRow extends StatelessWidget {
+class _BenefitRow extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const BenefitRow({super.key, required this.icon, required this.text});
+  const _BenefitRow({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {

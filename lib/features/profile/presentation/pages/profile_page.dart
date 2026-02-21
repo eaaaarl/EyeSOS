@@ -1,7 +1,7 @@
 import 'package:eyesos/features/auth/bloc/session_bloc.dart';
 import 'package:eyesos/features/auth/bloc/session_state.dart';
 import 'package:eyesos/features/profile/presentation/widgets/help_dialog.dart';
-import 'package:eyesos/features/profile/presentation/widgets/login_prompt_sheet.dart';
+import 'package:eyesos/core/presentation/widgets/login_prompt_sheet.dart';
 import 'package:eyesos/features/profile/presentation/widgets/logout_dialog.dart';
 import 'package:eyesos/features/profile/presentation/widgets/personal_information_sheet.dart';
 import 'package:eyesos/features/profile/presentation/widgets/profile_avatar_widgets.dart';
@@ -12,6 +12,7 @@ import 'package:eyesos/features/profile/presentation/widgets/sign_up_prompt_shee
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -287,6 +288,17 @@ class ProfilePage extends StatelessWidget {
                                         builder: (modalContext) =>
                                             LoginPromptSheet(
                                               parentContext: context,
+                                              onSignUpPressed: () {
+                                                context.pop();
+                                                showModalBottomSheet(
+                                                  context: context,
+                                                  isScrollControlled: true,
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  builder: (_) =>
+                                                      const SignUpPromptSheet(),
+                                                );
+                                              },
                                             ),
                                       );
                                     },
@@ -382,8 +394,18 @@ class ProfilePage extends StatelessWidget {
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (modalContext) =>
-                                LoginPromptSheet(parentContext: context),
+                            builder: (modalContext) => LoginPromptSheet(
+                              parentContext: context,
+                              onSignUpPressed: () {
+                                context.pop();
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (_) => const SignUpPromptSheet(),
+                                );
+                              },
+                            ),
                           );
                         }
                       },
@@ -406,8 +428,18 @@ class ProfilePage extends StatelessWidget {
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (modalContext) =>
-                                LoginPromptSheet(parentContext: context),
+                            builder: (modalContext) => LoginPromptSheet(
+                              parentContext: context,
+                              onSignUpPressed: () {
+                                context.pop();
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (_) => const SignUpPromptSheet(),
+                                );
+                              },
+                            ),
                           );
                         }
                       },
