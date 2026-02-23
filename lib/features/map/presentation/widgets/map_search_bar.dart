@@ -1,3 +1,5 @@
+import 'package:eyesos/features/map/bloc/location_bloc.dart';
+import 'package:eyesos/features/map/bloc/location_event.dart';
 import 'package:eyesos/features/map/bloc/location_state.dart';
 import 'package:eyesos/features/map/bloc/route_search_bloc.dart';
 import 'package:eyesos/features/map/bloc/route_search_event.dart';
@@ -446,7 +448,7 @@ class _SearchOverlayState extends State<_SearchOverlay> {
     );
   }
 
-  void _onPlaceSelected(BuildContext context, PlaceModel place) {
+  Future<void> _onPlaceSelected(BuildContext context, PlaceModel place) async {
     final locationState = widget.locationState;
     LatLng? origin;
 
@@ -458,24 +460,60 @@ class _SearchOverlayState extends State<_SearchOverlay> {
     }
 
     if (origin == null) {
+      // If location is not available, show feedback and try to fetch it
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Your location is not available yet. Try again.'),
+          content: Text('Fetching your current location...'),
+          duration: Duration(seconds: 2),
         ),
       );
+
+      // Request a one-time location fetch
+      context.read<LocationBloc>().add(
+        FetchLocationRequested(forceRefresh: true),
+      );
+
+      // Wait for the next state from LocationBloc
+      await for (final state in context.read<LocationBloc>().stream) {
+        if (state is LocationLoaded) {
+          origin = LatLng(state.location.latitude, state.location.longitude);
+          break;
+        } else if (state is LocationError) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to get location: ${state.message}'),
+              ),
+            );
+          }
+          return;
+        }
+      }
+    }
+
+    if (origin == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Your location is still not available. Try again.'),
+          ),
+        );
+      }
       return;
     }
 
-    context.read<RouteSearchBloc>().add(
-      FetchRouteRequested(
-        origin: origin,
-        destination: place.location,
-        destinationName: place.shortName,
-        roadRiskSegments: widget.roadRiskSegments,
-      ),
-    );
+    if (mounted) {
+      context.read<RouteSearchBloc>().add(
+        FetchRouteRequested(
+          origin: origin,
+          destination: place.location,
+          destinationName: place.shortName,
+          roadRiskSegments: widget.roadRiskSegments,
+        ),
+      );
 
-    Navigator.pop(context);
+      Navigator.pop(context);
+    }
   }
 }
 

@@ -59,12 +59,6 @@ class _MapsTableViewState extends State<MapsTableView>
   };
 
   @override
-  void initState() {
-    super.initState();
-    context.read<LocationBloc>().add(StartLocationTracking());
-  }
-
-  @override
   bool get wantKeepAlive => true;
 
   @override
@@ -139,6 +133,11 @@ class _MapsTableViewState extends State<MapsTableView>
           listener: (context, state) {
             if (state is RouteSearchRouteLoaded && _isMapReady) {
               _fitRouteBounds(state.route);
+              // Enable real-time tracking when a route is loaded
+              context.read<LocationBloc>().add(StartLocationTracking());
+            } else if (state is RouteSearchInitial) {
+              // Stop real-time tracking when route is dismissed
+              context.read<LocationBloc>().add(StopLocationTracking());
             }
           },
         ),
@@ -447,8 +446,8 @@ class _MapsTableViewState extends State<MapsTableView>
             if (activeRoute != null && activeRoute.fullPath.isNotEmpty)
               Marker(
                 point: activeRoute.fullPath.last,
-                width: 40,
-                height: 40,
+                width: 28,
+                height: 28,
                 alignment: Alignment.center,
                 child: const _DestinationPin(),
               ),
@@ -488,8 +487,8 @@ class _DestinationPin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-          width: 40,
-          height: 40,
+          width: 24,
+          height: 24,
           decoration: BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
@@ -503,7 +502,7 @@ class _DestinationPin extends StatelessWidget {
             border: Border.all(color: const Color(0xFFD32F2F), width: 2),
           ),
           child: const Center(
-            child: Icon(Icons.location_on, color: Color(0xFFD32F2F), size: 24),
+            child: Icon(Icons.location_on, color: Color(0xFFD32F2F), size: 18),
           ),
         )
         .animate()
