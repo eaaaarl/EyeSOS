@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
 import 'package:eyesos/core/bloc/connectivity_state.dart';
 import 'package:eyesos/features/map/bloc/map_bloc.dart';
@@ -58,12 +57,6 @@ class _MapsTableViewState extends State<MapsTableView>
     'satellite':
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   };
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<LocationBloc>().add(StartLocationTracking());
-  }
 
   @override
   bool get wantKeepAlive => true;
@@ -140,6 +133,11 @@ class _MapsTableViewState extends State<MapsTableView>
           listener: (context, state) {
             if (state is RouteSearchRouteLoaded && _isMapReady) {
               _fitRouteBounds(state.route);
+              // Enable real-time tracking when a route is loaded
+              context.read<LocationBloc>().add(StartLocationTracking());
+            } else if (state is RouteSearchInitial) {
+              // Stop real-time tracking when route is dismissed
+              context.read<LocationBloc>().add(StopLocationTracking());
             }
           },
         ),
@@ -448,9 +446,9 @@ class _MapsTableViewState extends State<MapsTableView>
             if (activeRoute != null && activeRoute.fullPath.isNotEmpty)
               Marker(
                 point: activeRoute.fullPath.last,
-                width: 48,
-                height: 56,
-                alignment: Alignment.bottomCenter,
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
                 child: const _DestinationPin(),
               ),
           ],
@@ -488,37 +486,24 @@ class _DestinationPin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-                border: Border.all(color: const Color(0xFFD32F2F), width: 2),
+    return Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
-              child: const Center(
-                child: Icon(
-                  Icons.location_on,
-                  color: Color(0xFFD32F2F),
-                  size: 28,
-                ),
-              ),
-            ),
-            // Add a small arrow/tail for the pin
-            CustomPaint(
-              size: const Size(12, 8),
-              painter: _PinTailPainter(color: const Color(0xFFD32F2F)),
-            ),
-          ],
+            ],
+            border: Border.all(color: const Color(0xFFD32F2F), width: 2),
+          ),
+          child: const Center(
+            child: Icon(Icons.location_on, color: Color(0xFFD32F2F), size: 18),
+          ),
         )
         .animate()
         .fadeIn(duration: 400.ms)
@@ -528,34 +513,4 @@ class _DestinationPin extends StatelessWidget {
           curve: Curves.easeOutBack,
         );
   }
-}
-
-class _PinTailPainter extends CustomPainter {
-  final Color color;
-  _PinTailPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    // Use ui.Path to avoid name collision with latlong2.Path
-    final path = ui.Path()
-      ..moveTo(0, 0)
-      // Smooth curve towards the tip
-      ..quadraticBezierTo(
-        size.width * 0.1,
-        size.height * 0.4,
-        size.width / 2,
-        size.height,
-      )
-      ..quadraticBezierTo(size.width * 0.9, size.height * 0.4, size.width, 0)
-      ..close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

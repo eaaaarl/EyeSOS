@@ -95,6 +95,8 @@ class EmergencyButton extends StatelessWidget {
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -103,6 +105,8 @@ class EmergencyButton extends StatelessWidget {
                             color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 12,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),

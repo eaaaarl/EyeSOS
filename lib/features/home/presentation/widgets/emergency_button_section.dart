@@ -40,24 +40,31 @@ class EmergencyButtonSection extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Emergency Actions',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Emergency Actions',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Report emergencies to MDRRMC',
-              style: GoogleFonts.inter(fontSize: 13, color: Colors.grey[600]),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                'Report emergencies to MDRRMC',
+                style: GoogleFonts.inter(fontSize: 13, color: Colors.grey[600]),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
+        const SizedBox(width: 12),
         if (!isAuthenticated)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
