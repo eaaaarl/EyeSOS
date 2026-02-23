@@ -60,10 +60,17 @@ class _MapsTableViewState extends State<MapsTableView>
   };
 
   @override
+  void initState() {
+    super.initState();
+    context.read<LocationBloc>().add(StartLocationTracking());
+  }
+
+  @override
   bool get wantKeepAlive => true;
 
   @override
   void dispose() {
+    context.read<LocationBloc>().add(StopLocationTracking());
     _mapController.dispose();
     super.dispose();
   }
@@ -184,7 +191,7 @@ class _MapsTableViewState extends State<MapsTableView>
                                   // ── Road loading indicator ─────────────────────────────
                                   if (isLoadingRoads)
                                     Positioned(
-                                      top: 100,
+                                      top: 180,
                                       left: 16,
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
@@ -292,9 +299,7 @@ class _MapsTableViewState extends State<MapsTableView>
                                     ),
 
                                   // ── Legend ─────────────────────────────────────────────
-                                  if (mapState.showLegend &&
-                                      mapState.showRoadRisk &&
-                                      !isLoadingRoads)
+                                  if (mapState.showLegend && !isLoadingRoads)
                                     const RoadRiskLegend(),
 
                                   // ── Control buttons ────────────────────────────────────
