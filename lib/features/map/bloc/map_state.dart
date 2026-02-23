@@ -4,7 +4,7 @@ class MapState extends Equatable {
   final bool showLegend;
   final bool showRoadRisk;
 
-  const MapState({this.showLegend = true, this.showRoadRisk = true});
+  const MapState({this.showLegend = false, this.showRoadRisk = false});
 
   MapState copyWith({bool? showLegend, bool? showRoadRisk}) {
     return MapState(
