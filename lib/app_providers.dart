@@ -26,9 +26,15 @@ import 'package:eyesos/features/map/bloc/map_bloc.dart';
 import 'package:eyesos/features/map/bloc/road_risk_bloc.dart';
 import 'package:eyesos/features/map/bloc/road_risk_event.dart';
 import 'package:eyesos/features/map/data/datasources/map_remote_datasource.dart';
+import 'package:eyesos/features/map/data/datasources/route_remote_datasource.dart';
 import 'package:eyesos/features/map/data/repositories/map_repositories_impl.dart';
+import 'package:eyesos/features/map/data/repositories/route_repository_impl.dart';
 import 'package:eyesos/features/map/domain/repositories/i_map_repository.dart';
+import 'package:eyesos/features/map/domain/repositories/i_route_repository.dart';
 import 'package:eyesos/features/map/domain/usecases/fetch_roads_usecases.dart';
+import 'package:eyesos/features/map/domain/usecases/fetch_route_usecase.dart';
+import 'package:eyesos/features/map/domain/usecases/search_places_usecase.dart';
+import 'package:eyesos/features/map/bloc/route_search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -48,6 +54,9 @@ class AppProviders extends StatelessWidget {
         ),
         RepositoryProvider<IMapRepository>(
           create: (context) => IMapRepositoryImpl(MapRemoteDatasource()),
+        ),
+        RepositoryProvider<IRouteRepository>(
+          create: (context) => RouteRepositoryImpl(RouteRemoteDatasource()),
         ),
       ],
       child: MultiBlocProvider(
@@ -109,6 +118,15 @@ class AppProviders extends StatelessWidget {
             },
           ),
           BlocProvider(create: (context) => MapBloc()),
+          BlocProvider(
+            create: (context) {
+              final repo = context.read<IRouteRepository>();
+              return RouteSearchBloc(
+                searchPlacesUseCase: SearchPlacesUseCase(repo),
+                fetchRouteUseCase: FetchRouteUseCase(repo),
+              );
+            },
+          ),
         ],
         child: const MyApp(),
       ),

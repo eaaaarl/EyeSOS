@@ -44,8 +44,8 @@ class MapControlButtons extends StatelessWidget {
                     ? Icons.visibility
                     : Icons.visibility_off,
                 tooltip: mapState.showRoadRisk
-                    ? 'Hide Risk Roads'
-                    : 'Show Risk Roads',
+                    ? 'Hide Danger Roads'
+                    : 'Show Danger Roads',
                 onPressed: () => context.read<MapBloc>().add(ToggleRoads()),
                 iconColor: Colors.red[700],
               ),

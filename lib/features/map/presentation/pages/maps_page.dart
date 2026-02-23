@@ -1,16 +1,20 @@
+import 'dart:ui' as ui;
 import 'package:eyesos/core/bloc/connectivity_bloc.dart';
 import 'package:eyesos/core/bloc/connectivity_state.dart';
 import 'package:eyesos/features/map/bloc/map_bloc.dart';
 import 'package:eyesos/features/map/bloc/map_state.dart';
 import 'package:eyesos/features/map/data/models/road_risk_model.dart';
 import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
+import 'package:eyesos/features/map/domain/entities/route_entity.dart';
 import 'package:eyesos/features/map/presentation/widgets/map_skeleton.dart';
+import 'package:eyesos/features/map/presentation/widgets/map_search_bar.dart';
 import 'package:eyesos/features/map/presentation/widgets/topbar.dart';
 import 'package:eyesos/features/map/presentation/widgets/map_control_buttons.dart';
 import 'package:eyesos/features/map/presentation/widgets/road_risk_bottom_sheet.dart';
 import 'package:eyesos/features/map/presentation/widgets/road_risk_legend.dart';
 import 'package:eyesos/features/map/presentation/widgets/user_location_marker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -21,6 +25,8 @@ import 'package:eyesos/features/map/bloc/location_state.dart';
 import 'package:eyesos/features/map/bloc/road_risk_bloc.dart';
 import 'package:eyesos/features/map/bloc/road_risk_event.dart';
 import 'package:eyesos/features/map/bloc/road_risk_state.dart';
+import 'package:eyesos/features/map/bloc/route_search_bloc.dart';
+import 'package:eyesos/features/map/bloc/route_search_state.dart';
 
 class MapsPage extends StatelessWidget {
   const MapsPage({super.key});
@@ -54,10 +60,17 @@ class _MapsTableViewState extends State<MapsTableView>
   };
 
   @override
+  void initState() {
+    super.initState();
+    context.read<LocationBloc>().add(StartLocationTracking());
+  }
+
+  @override
   bool get wantKeepAlive => true;
 
   @override
   void dispose() {
+    context.read<LocationBloc>().add(StopLocationTracking());
     _mapController.dispose();
     super.dispose();
   }
@@ -122,6 +135,14 @@ class _MapsTableViewState extends State<MapsTableView>
             }
           },
         ),
+        // ── Fly camera to the fetched route ────────────────────────────────
+        BlocListener<RouteSearchBloc, RouteSearchState>(
+          listener: (context, state) {
+            if (state is RouteSearchRouteLoaded && _isMapReady) {
+              _fitRouteBounds(state.route);
+            }
+          },
+        ),
       ],
       child: BlocBuilder<ConnectivityBloc, ConnectivityStatus>(
         builder: (context, connectivityState) {
@@ -139,141 +160,161 @@ class _MapsTableViewState extends State<MapsTableView>
 
                   return BlocBuilder<MapBloc, MapState>(
                     builder: (context, mapState) {
-                      return Scaffold(
-                        body: Stack(
-                          children: [
-                            // ── Map ────────────────────────────────────────────────────
-                            _buildMap(locationState, roads, mapState),
+                      return BlocBuilder<RouteSearchBloc, RouteSearchState>(
+                        builder: (context, routeState) {
+                          final activeRoute =
+                              routeState is RouteSearchRouteLoaded
+                              ? routeState.route
+                              : null;
 
-                            // ── Loading skeleton ───────────────────────────────────────
-                            if (!_isMapReady) const MapSkeleton(),
-
-                            if (_isMapReady) ...[
-                              // ── Top bar ────────────────────────────────────────────
-                              _buildTopBar(),
-
-                              // ── Road loading indicator ─────────────────────────────
-                              if (isLoadingRoads)
-                                Positioned(
-                                  top: 100,
-                                  left: 16,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                          blurRadius: 6,
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        SizedBox(
-                                          width: 12,
-                                          height: 12,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Color(0xFF2563eb),
-                                          ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Loading road risk…',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                          return Scaffold(
+                            body: Stack(
+                              children: [
+                                // ── Map ──────────────────────────────────────────────
+                                _buildMap(
+                                  locationState,
+                                  roads,
+                                  mapState,
+                                  activeRoute,
                                 ),
 
-                              // ── Road error banner ──────────────────────────────────
-                              if (roadsError != null)
-                                Positioned(
-                                  top: 100,
-                                  left: 16,
-                                  right: 80,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 9,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red.shade50,
-                                      border: Border.all(
-                                        color: Colors.red.shade200,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.warning_amber_rounded,
-                                          color: Colors.red,
-                                          size: 16,
+                                // ── Loading skeleton ───────────────────────────────────────
+                                if (!_isMapReady) const MapSkeleton(),
+
+                                if (_isMapReady) ...[
+                                  // ── Top bar ────────────────────────────────────────────
+                                  _buildTopBar(),
+
+                                  // ── Search bar ─────────────────────────────────────────
+                                  _buildSearchBar(locationState, roads),
+
+                                  // ── Road loading indicator ─────────────────────────────
+                                  if (isLoadingRoads)
+                                    Positioned(
+                                      top: 180,
+                                      left: 16,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
                                         ),
-                                        const SizedBox(width: 6),
-                                        const Expanded(
-                                          child: Text(
-                                            'Road data unavailable',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.red,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                              blurRadius: 6,
                                             ),
+                                          ],
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SizedBox(
+                                              width: 12,
+                                              height: 12,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Color(0xFF2563eb),
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              'Loading road risk…',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+
+                                  // ── Road error banner ──────────────────────────────────
+                                  if (roadsError != null)
+                                    Positioned(
+                                      top: 100,
+                                      left: 16,
+                                      right: 80,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 9,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red.shade50,
+                                          border: Border.all(
+                                            color: Colors.red.shade200,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
                                           ),
                                         ),
-                                        GestureDetector(
-                                          onTap: () =>
-                                              context.read<RoadRiskBloc>().add(
-                                                const FetchRoadRiskRequested(
-                                                  forceRefresh: true,
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.warning_amber_rounded,
+                                              color: Colors.red,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            const Expanded(
+                                              child: Text(
+                                                'Road data unavailable',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.red,
                                                 ),
                                               ),
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.red,
-                                              decoration:
-                                                  TextDecoration.underline,
                                             ),
-                                          ),
+                                            GestureDetector(
+                                              onTap: () => context
+                                                  .read<RoadRiskBloc>()
+                                                  .add(
+                                                    const FetchRoadRiskRequested(
+                                                      forceRefresh: true,
+                                                    ),
+                                                  ),
+                                              child: const Text(
+                                                'Retry',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.red,
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
                                     ),
+
+                                  // ── Legend ─────────────────────────────────────────────
+                                  if (mapState.showLegend && !isLoadingRoads)
+                                    const RoadRiskLegend(),
+
+                                  // ── Control buttons ────────────────────────────────────
+                                  MapControlButtons(
+                                    mapController: _mapController,
+                                    locationState: locationState,
+                                    isMapReady: _isMapReady,
+                                    onCenterOnLocation: () =>
+                                        _centerOnLocation(locationState),
                                   ),
-                                ),
-
-                              // ── Legend ─────────────────────────────────────────────
-                              if (mapState.showLegend &&
-                                  mapState.showRoadRisk &&
-                                  !isLoadingRoads)
-                                const RoadRiskLegend(),
-
-                              // ── Control buttons ────────────────────────────────────
-                              MapControlButtons(
-                                mapController: _mapController,
-                                locationState: locationState,
-                                isMapReady: _isMapReady,
-                                onCenterOnLocation: () =>
-                                    _centerOnLocation(locationState),
-                              ),
-                            ],
-                          ],
-                        ),
+                                ],
+                              ],
+                            ),
+                          );
+                        },
                       );
                     },
                   );
@@ -314,10 +355,32 @@ class _MapsTableViewState extends State<MapsTableView>
     }
   }
 
+  /// Fly the camera to show the full A→B route.
+  void _fitRouteBounds(RouteEntity route) {
+    if (route.fullPath.isEmpty) return;
+    double minLat = route.fullPath.first.latitude;
+    double maxLat = minLat;
+    double minLon = route.fullPath.first.longitude;
+    double maxLon = minLon;
+    for (final p in route.fullPath) {
+      if (p.latitude < minLat) minLat = p.latitude;
+      if (p.latitude > maxLat) maxLat = p.latitude;
+      if (p.longitude < minLon) minLon = p.longitude;
+      if (p.longitude > maxLon) maxLon = p.longitude;
+    }
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: LatLngBounds(LatLng(minLat, minLon), LatLng(maxLat, maxLon)),
+        padding: const EdgeInsets.all(60),
+      ),
+    );
+  }
+
   Widget _buildMap(
     LocationState locationState,
     List<RoadRiskEntity> roads,
     MapState mapState,
+    RouteEntity? activeRoute,
   ) {
     return FlutterMap(
       mapController: _mapController,
@@ -336,6 +399,7 @@ class _MapsTableViewState extends State<MapsTableView>
           userAgentPackageName: dotenv.env['PACKAGE_NAME']!,
         ),
 
+        // ── Road-risk overlay (off by default, togglable) ─────────────────
         if (mapState.showRoadRisk && roads.isNotEmpty)
           PolylineLayer(
             polylines: roads
@@ -349,8 +413,26 @@ class _MapsTableViewState extends State<MapsTableView>
                 .toList(),
           ),
 
+        // ── Active route (A → B, risk-colored segments) ────────────────────
+        if (activeRoute != null && activeRoute.coloredSegments.isNotEmpty)
+          PolylineLayer(
+            polylines: activeRoute.coloredSegments
+                .where((s) => s.points.isNotEmpty)
+                .map(
+                  (s) => Polyline(
+                    points: s.points,
+                    color: s.color,
+                    strokeWidth: s.strokeWidth,
+                    borderColor: Colors.white.withValues(alpha: 0.5),
+                    borderStrokeWidth: 2,
+                  ),
+                )
+                .toList(),
+          ),
+
         MarkerLayer(
           markers: [
+            // ── User location marker (A) ──────────────────────────────────
             if (locationState is LocationLoaded)
               Marker(
                 point: LatLng(
@@ -360,6 +442,16 @@ class _MapsTableViewState extends State<MapsTableView>
                 width: 60,
                 height: 60,
                 child: const UserLocationMarker(),
+              ),
+
+            // ── Destination marker (B) ────────────────────────────────────
+            if (activeRoute != null && activeRoute.fullPath.isNotEmpty)
+              Marker(
+                point: activeRoute.fullPath.last,
+                width: 48,
+                height: 56,
+                alignment: Alignment.bottomCenter,
+                child: const _DestinationPin(),
               ),
           ],
         ),
@@ -374,6 +466,13 @@ class _MapsTableViewState extends State<MapsTableView>
     );
   }
 
+  Widget _buildSearchBar(
+    LocationState locationState,
+    List<RoadRiskEntity> roads,
+  ) {
+    return MapSearchBar(locationState: locationState, roadRiskSegments: roads);
+  }
+
   void _showRoadBottomSheet(RoadRiskEntity road) {
     showModalBottomSheet(
       context: context,
@@ -382,4 +481,81 @@ class _MapsTableViewState extends State<MapsTableView>
       builder: (_) => RoadRiskBottomSheet(road: road),
     );
   }
+}
+
+class _DestinationPin extends StatelessWidget {
+  const _DestinationPin();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                border: Border.all(color: const Color(0xFFD32F2F), width: 2),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.location_on,
+                  color: Color(0xFFD32F2F),
+                  size: 28,
+                ),
+              ),
+            ),
+            // Add a small arrow/tail for the pin
+            CustomPaint(
+              size: const Size(12, 8),
+              painter: _PinTailPainter(color: const Color(0xFFD32F2F)),
+            ),
+          ],
+        )
+        .animate()
+        .fadeIn(duration: 400.ms)
+        .scale(
+          begin: const Offset(0.5, 0.5),
+          end: const Offset(1, 1),
+          curve: Curves.easeOutBack,
+        );
+  }
+}
+
+class _PinTailPainter extends CustomPainter {
+  final Color color;
+  _PinTailPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    // Use ui.Path to avoid name collision with latlong2.Path
+    final path = ui.Path()
+      ..moveTo(0, 0)
+      // Smooth curve towards the tip
+      ..quadraticBezierTo(
+        size.width * 0.1,
+        size.height * 0.4,
+        size.width / 2,
+        size.height,
+      )
+      ..quadraticBezierTo(size.width * 0.9, size.height * 0.4, size.width, 0)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

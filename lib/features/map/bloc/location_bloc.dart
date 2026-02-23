@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:eyesos/features/map/bloc/location_event.dart';
 import 'package:eyesos/features/map/bloc/location_state.dart';
 import 'package:eyesos/features/map/data/models/location_model.dart';
@@ -12,8 +13,109 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   DateTime? _lastFetchTime;
   static const _cacheDuration = Duration(minutes: 5);
 
+  StreamSubscription<Position>? _positionSubscription;
+
   LocationBloc() : super(LocationInitial()) {
     on<FetchLocationRequested>(_onFetchLocationRequested);
+    on<StartLocationTracking>(_onStartLocationTracking);
+    on<StopLocationTracking>(_onStopLocationTracking);
+    on<LocationUpdated>(_onLocationUpdated);
+  }
+
+  @override
+  Future<void> close() {
+    _positionSubscription?.cancel();
+    return super.close();
+  }
+
+  Future<void> _onStartLocationTracking(
+    StartLocationTracking event,
+    Emitter<LocationState> emit,
+  ) async {
+    // 1. Check permissions / services
+    final permissionStatus = await _handleLocationPermission();
+    if (!permissionStatus) {
+      emit(LocationError(message: 'Permission denied for tracking.'));
+      return;
+    }
+
+    final serviceEnabled = await _checkLocationService();
+    if (!serviceEnabled) {
+      emit(LocationError(message: 'GPS disabled. Cannot track location.'));
+      return;
+    }
+
+    // 2. Cancel existing if any
+    await _positionSubscription?.cancel();
+
+    // 3. Start stream
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 5, // update every 5 meters
+          ),
+        ).listen(
+          (position) => add(LocationUpdated(position)),
+          onError: (e) => add(FetchLocationRequested(forceRefresh: true)),
+        );
+  }
+
+  Future<void> _onStopLocationTracking(
+    StopLocationTracking event,
+    Emitter<LocationState> emit,
+  ) async {
+    await _positionSubscription?.cancel();
+    _positionSubscription = null;
+  }
+
+  Future<void> _onLocationUpdated(
+    LocationUpdated event,
+    Emitter<LocationState> emit,
+  ) async {
+    final position = event.position;
+
+    // We update address less frequently to save resources
+    String address = _cachedLocation?.address ?? 'Updating...';
+
+    _cachedLocation = UserLocation(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      address: address,
+      accuracy: position.accuracy,
+    );
+    _lastFetchTime = DateTime.now();
+
+    emit(
+      LocationLoaded(location: _cachedLocation!, timestamp: _lastFetchTime!),
+    );
+
+    // Async reverse geocode to update address if it was 'Updating...' or old
+    unawaited(_updateAddress(position));
+  }
+
+  Future<void> _updateAddress(Position position) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      ).timeout(const Duration(seconds: 3));
+
+      if (placemarks.isNotEmpty && _cachedLocation != null) {
+        final newAddress = _formatAddress(placemarks.first);
+        if (newAddress != _cachedLocation!.address) {
+          _cachedLocation = UserLocation(
+            latitude: _cachedLocation!.latitude,
+            longitude: _cachedLocation!.longitude,
+            address: newAddress,
+            accuracy: _cachedLocation!.accuracy,
+          );
+          // Note: Since we are outside the Emitter, we don't 'emit' here immediately
+          // but the next stream update or manual fetch will catch it.
+          // In a more robust implementation, we might trigger another event.
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> _onFetchLocationRequested(
