@@ -68,7 +68,7 @@ class ProfileMenuCard extends StatelessWidget {
                           Text(
                             title,
                             style: GoogleFonts.poppins(
-                              fontSize: 16,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: Colors.grey[800],
                             ),
@@ -87,7 +87,7 @@ class ProfileMenuCard extends StatelessWidget {
                               child: Text(
                                 'Login',
                                 style: GoogleFonts.inter(
-                                  fontSize: 10,
+                                  fontSize: 8,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.orange[800],
                                 ),

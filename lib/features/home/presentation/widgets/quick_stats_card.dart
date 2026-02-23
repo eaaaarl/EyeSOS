@@ -16,7 +16,7 @@ class QuickStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 70, // Fixed height for consistency
+      height: 75, // Fixed height for consistency
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.2),
