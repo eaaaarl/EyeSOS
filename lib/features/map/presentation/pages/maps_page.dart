@@ -118,12 +118,22 @@ class _MapsTableViewState extends State<MapsTableView>
         BlocListener<LocationBloc, LocationState>(
           listener: (context, state) {
             if (state is LocationLoaded && _isMapReady) {
+              ScaffoldMessenger.of(
+                context,
+              ).clearSnackBars(); // dismiss error if location recovers
               if (_shouldCenterOnNextLocation) {
                 _centerOnLocation(state);
                 setState(() => _shouldCenterOnNextLocation = false);
               }
             } else if (state is LocationError) {
-              _showLocationError(state.message);
+              Future.delayed(const Duration(milliseconds: 800), () {
+                if (!mounted) return;
+                // Only show error if we're still in an error state
+                final currentState = context.read<LocationBloc>().state;
+                if (currentState is LocationError) {
+                  _showLocationError(state.message);
+                }
+              });
               setState(() => _shouldCenterOnNextLocation = false);
             }
           },
