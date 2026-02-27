@@ -126,12 +126,14 @@ class _MapsTableViewState extends State<MapsTableView>
                 setState(() => _shouldCenterOnNextLocation = false);
               }
             } else if (state is LocationError) {
+              final errorMessage = state.message;
+              final locationBloc = context.read<LocationBloc>();
               Future.delayed(const Duration(milliseconds: 800), () {
                 if (!mounted) return;
                 // Only show error if we're still in an error state
-                final currentState = context.read<LocationBloc>().state;
+                final currentState = locationBloc.state;
                 if (currentState is LocationError) {
-                  _showLocationError(state.message);
+                  _showLocationError(errorMessage);
                 }
               });
               setState(() => _shouldCenterOnNextLocation = false);
