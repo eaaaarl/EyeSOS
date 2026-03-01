@@ -1,4 +1,5 @@
 import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart';
+import 'package:eyesos/features/home/domain/entities/accident_status_entity.dart';
 
 class AccidentReportModel extends AccidentReportEntity {
   AccidentReportModel({
@@ -13,6 +14,8 @@ class AccidentReportModel extends AccidentReportEntity {
     required super.locationAddress,
     required super.imageUrls,
     required super.isSos,
+    required super.accidentStatus,
+    super.updatedAt,
   });
 
   factory AccidentReportModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +40,12 @@ class AccidentReportModel extends AccidentReportEntity {
       // Convert the dynamic list to a List<String>
       imageUrls: imageList,
       isSos: json['sos_type'] ?? false,
+      accidentStatus: AccidentStatus.fromString(
+        json['accident_status'] ?? 'NEW',
+      ),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
     );
   }
 }
