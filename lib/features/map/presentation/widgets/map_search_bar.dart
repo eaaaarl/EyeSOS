@@ -7,6 +7,7 @@ import 'package:eyesos/features/map/bloc/route_search_state.dart';
 import 'package:eyesos/features/map/data/models/place_model.dart';
 import 'package:eyesos/features/map/domain/entities/road_risk_entity.dart';
 import 'package:eyesos/features/map/domain/entities/route_entity.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -109,17 +110,6 @@ class _SearchPill extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          ),
-          Container(
-            width: 1,
-            height: 22,
-            color: Colors.grey[300],
-            margin: const EdgeInsets.symmetric(horizontal: 10),
-          ),
-          const Icon(
-            Icons.mic_none_rounded,
-            color: Color(0xFFD32F2F),
-            size: 22,
           ),
         ],
       ),
@@ -276,13 +266,14 @@ class _SearchOverlay extends StatefulWidget {
 class _SearchOverlayState extends State<_SearchOverlay> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  final String _lastSpeechError = '';
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _focusNode.requestFocus(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   @override
@@ -350,26 +341,7 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                               color: Color(0xFFD32F2F),
                               size: 22,
                             ),
-                            suffixIcon:
-                                BlocBuilder<RouteSearchBloc, RouteSearchState>(
-                                  builder: (context, state) {
-                                    if (_controller.text.isNotEmpty) {
-                                      return IconButton(
-                                        icon: const Icon(
-                                          Icons.close_rounded,
-                                          size: 20,
-                                        ),
-                                        onPressed: () {
-                                          _controller.clear();
-                                          context.read<RouteSearchBloc>().add(
-                                            const SearchCleared(),
-                                          );
-                                        },
-                                      );
-                                    }
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
+                            suffixIcon: _buildSuffixIcon(),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -399,6 +371,14 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                 ),
               ),
 
+              if (_lastSpeechError.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Text(
+                    _lastSpeechError,
+                    style: GoogleFonts.inter(color: Colors.red, fontSize: 12),
+                  ),
+                ),
               const SizedBox(height: 8),
               const Divider(height: 1),
 
@@ -444,6 +424,17 @@ class _SearchOverlayState extends State<_SearchOverlay> {
             ],
           ),
         );
+      },
+    );
+  }
+
+  Widget _buildSuffixIcon() {
+    if (_controller.text.isEmpty) return const SizedBox.shrink();
+    return IconButton(
+      icon: const Icon(Icons.close_rounded, size: 20),
+      onPressed: () {
+        _controller.clear();
+        context.read<RouteSearchBloc>().add(const SearchCleared());
       },
     );
   }
