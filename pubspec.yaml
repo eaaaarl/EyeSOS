@@ -120,13 +120,13 @@ flutter_launcher_icons:
 
 package_rename_config:
   android:
-    app_name: EyeSOS (Preview)
+    app_name: EyeSOS
     package_name: com.eaaaarl.eyesos
     override_old_package: com.eaaaarl.eyesos
     lang: kotlin
 
   ios:
-    app_name: EyeSOS (Preview)
+    app_name: EyeSOS
     bundle_name: eyesos
     package_name: com.eaaaarl.eyesos
 
