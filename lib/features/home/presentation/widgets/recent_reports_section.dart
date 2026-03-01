@@ -255,6 +255,8 @@ class RecentReportsSection extends StatelessWidget {
                               : '',
                           imageCount: report.imageUrls.length,
                           severity: report.severity,
+                          accidentStatus: report.accidentStatus,
+                          updatedAt: report.updatedAt,
                           onTap: () {
                             onReportTap(report);
                           },

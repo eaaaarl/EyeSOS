@@ -1,3 +1,4 @@
+import 'package:eyesos/features/home/domain/entities/accident_status_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,7 +15,8 @@ class ReportDetailsModal extends StatefulWidget {
   final String notes;
   final List<String> imageUrls;
   final String? severity;
-  final String? status;
+  final AccidentStatus? accidentStatus;
+  final DateTime? updatedAt;
 
   const ReportDetailsModal({
     super.key,
@@ -26,7 +28,8 @@ class ReportDetailsModal extends StatefulWidget {
     required this.notes,
     required this.imageUrls,
     this.severity,
-    this.status,
+    this.accidentStatus,
+    this.updatedAt,
   });
 
   @override
@@ -64,29 +67,11 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
   }
 
   Color _getStatusColor() {
-    switch (widget.status?.toLowerCase()) {
-      case 'resolved':
-        return Colors.green[600]!;
-      case 'responding':
-        return Colors.blue[600]!;
-      case 'pending':
-        return Colors.orange[600]!;
-      default:
-        return Colors.grey[600]!;
-    }
+    return widget.accidentStatus?.color ?? Colors.grey[600]!;
   }
 
   IconData _getStatusIcon() {
-    switch (widget.status?.toLowerCase()) {
-      case 'resolved':
-        return Icons.check_circle;
-      case 'responding':
-        return Icons.directions_car;
-      case 'pending':
-        return Icons.pending;
-      default:
-        return Icons.info;
-    }
+    return widget.accidentStatus?.icon ?? Icons.info_outline;
   }
 
   @override
@@ -197,9 +182,9 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
                   // Status and Severity Badges
                   Row(
                     children: [
-                      if (widget.status != null) ...[
+                      if (widget.accidentStatus != null) ...[
                         _buildBadge(
-                          label: widget.status!.toUpperCase(),
+                          label: widget.accidentStatus!.label.toUpperCase(),
                           icon: _getStatusIcon(),
                           color: _getStatusColor(),
                         ),
@@ -235,6 +220,17 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
                     content: timeago.format(widget.createdAt),
                     subtitle: _formatDateTime(widget.createdAt),
                   ),
+
+                  if (widget.updatedAt != null) ...[
+                    const SizedBox(height: 20),
+                    _buildInfoSection(
+                      icon: Icons.update,
+                      iconColor: Colors.green[600]!,
+                      title: 'Last Updated',
+                      content: timeago.format(widget.updatedAt!),
+                      subtitle: _formatDateTime(widget.updatedAt!),
+                    ),
+                  ],
 
                   const SizedBox(height: 20),
 
