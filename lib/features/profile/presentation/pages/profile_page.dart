@@ -422,7 +422,7 @@ class ProfilePage extends StatelessWidget {
                       requiresAuth: true,
                       onTap: () {
                         if (isAuthenticated) {
-                          _showComingSoonSnackbar(context, 'Report History');
+                          context.push('/report-history');
                         } else {
                           showModalBottomSheet(
                             context: context,
@@ -556,25 +556,6 @@ class ProfilePage extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  void _showComingSoonSnackbar(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.info_outline, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text('$feature coming soon!', style: GoogleFonts.inter()),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.blue[700],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
     );
   }
 }

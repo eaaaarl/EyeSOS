@@ -9,6 +9,7 @@ import 'package:eyesos/features/home/presentation/widgets/report_details_modal.d
 import 'package:eyesos/features/home/presentation/pages/home_page.dart';
 import 'package:eyesos/features/map/presentation/pages/maps_page.dart';
 import 'package:eyesos/features/profile/presentation/pages/profile_page.dart';
+import 'package:eyesos/features/profile/presentation/pages/report_history_page.dart';
 import 'package:eyesos/features/welcome/presentation/pages/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -102,6 +103,12 @@ final GoRouter router = GoRouter(
           ),
         );
       },
+    ),
+    GoRoute(
+      path: '/report-history',
+      parentNavigatorKey: _rootNavigatorKey,
+      pageBuilder: (context, state) =>
+          _slideTransition(state: state, child: const ReportHistoryPage()),
     ),
   ],
 );
