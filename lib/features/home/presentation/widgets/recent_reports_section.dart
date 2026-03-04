@@ -7,6 +7,7 @@ import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart
 import 'package:eyesos/features/home/presentation/widgets/report_item_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -47,19 +48,7 @@ class RecentReportsSection extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'View All Reports - Coming Soon',
-                        style: GoogleFonts.inter(),
-                      ),
-                      backgroundColor: Colors.blue[700],
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  );
+                  context.push('/report-history');
                 },
                 child: Row(
                   children: [
@@ -68,7 +57,14 @@ class RecentReportsSection extends StatelessWidget {
                       style: GoogleFonts.inter(
                         color: Colors.red[700],
                         fontWeight: FontWeight.w600,
+                        fontSize: 13,
                       ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 12,
+                      color: Colors.red[700],
                     ),
                   ],
                 ),
@@ -240,7 +236,7 @@ class RecentReportsSection extends StatelessWidget {
                     ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: reports.length,
+                      itemCount: reports.length > 5 ? 5 : reports.length,
                       itemBuilder: (context, index) {
                         final report = reports[index];
                         return ReportItemCard(

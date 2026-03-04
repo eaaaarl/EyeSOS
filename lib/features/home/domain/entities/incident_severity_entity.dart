@@ -4,8 +4,7 @@ enum IncidentSeverityEntity {
   minor,
   moderate,
   high,
-  critical,
-  emergency;
+  critical;
 
   String get label {
     switch (this) {
@@ -17,23 +16,19 @@ enum IncidentSeverityEntity {
         return 'High';
       case IncidentSeverityEntity.critical:
         return 'Critical';
-      case IncidentSeverityEntity.emergency:
-        return 'Emergency';
     }
   }
 
   String get description {
     switch (this) {
       case IncidentSeverityEntity.minor:
-        return 'Scratches, small dents, no injuries';
+        return 'Scratches, small dents, or cosmetic damage. No injuries reported.';
       case IncidentSeverityEntity.moderate:
-        return 'Significant damage, minor injuries';
+        return 'Significant damage (e.g., broken lights, body dents). Minor injuries needing basic first aid.';
       case IncidentSeverityEntity.high:
-        return 'Severe damage, major injuries';
+        return 'Severe vehicle damage (e.g., airbags deployed). Major injuries requiring medical attention.';
       case IncidentSeverityEntity.critical:
-        return 'Life-threatening situation';
-      case IncidentSeverityEntity.emergency:
-        return 'Immediate assistance required, fire or fatal';
+        return 'Life-threatening situation. Multiple vehicles, fire, or unconscious persons. Call MDRRMC/Emergency immediately.';
     }
   }
 
@@ -47,8 +42,6 @@ enum IncidentSeverityEntity {
         return Colors.orange[700]!;
       case IncidentSeverityEntity.critical:
         return Colors.red[700]!;
-      case IncidentSeverityEntity.emergency:
-        return Colors.red[900]!;
     }
   }
 
@@ -62,8 +55,6 @@ enum IncidentSeverityEntity {
         return Icons.warning_rounded;
       case IncidentSeverityEntity.critical:
         return Icons.error_outline_rounded;
-      case IncidentSeverityEntity.emergency:
-        return Icons.local_fire_department_rounded;
     }
   }
 }

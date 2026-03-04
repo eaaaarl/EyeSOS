@@ -131,10 +131,40 @@ class AccidentReportBloc
           position.latitude,
           position.longitude,
         ).timeout(const Duration(seconds: 5));
+
         if (placemarks.isNotEmpty) {
           Placemark place = placemarks[0];
-          address =
-              "${place.street ?? ''}, ${place.locality ?? ''}, ${place.subAdministrativeArea ?? ''}";
+          // Find the first non-empty subLocality (Barangay/Poblacion) in the list
+          String? subLocality;
+          for (var p in placemarks) {
+            if (p.subLocality != null && p.subLocality!.isNotEmpty) {
+              subLocality = p.subLocality;
+              break;
+            }
+          }
+
+          // Fallback check if any placemark name contains "Poblacion"
+          if (subLocality == null) {
+            for (var p in placemarks) {
+              if (p.name != null &&
+                  p.name!.toLowerCase().contains('poblacion')) {
+                subLocality = p.name;
+                break;
+              }
+            }
+          }
+
+          // Build address from components
+          final addressParts = [
+            subLocality, // Barangay (e.g., Poblacion)
+            place.thoroughfare, // Street
+            place.locality, // Municipality/City
+            place.subAdministrativeArea, // Province
+          ];
+
+          address = addressParts
+              .where((part) => part != null && part.isNotEmpty)
+              .join(', ');
 
           emit(state.copyWith(currentAddress: address));
         }

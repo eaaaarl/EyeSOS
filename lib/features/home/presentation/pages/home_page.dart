@@ -95,6 +95,8 @@ class _HomeTabState extends State<HomePage> {
           severity: report.severity,
           accidentStatus: report.accidentStatus,
           updatedAt: report.updatedAt,
+          latitude: report.latitude,
+          longitude: report.longitude,
         ),
       ),
     );

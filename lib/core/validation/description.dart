@@ -1,17 +1,17 @@
 import 'package:formz/formz.dart';
 
-enum DescriptionValidationError { empty, tooShort }
+enum DescriptionValidationError { tooShort }
 
 class Description extends FormzInput<String, DescriptionValidationError> {
   const Description.pure() : super.pure('');
   const Description.dirty([super.value = '']) : super.dirty();
 
-  static const int minLength = 10;
+  static const int minLength = 5;
 
   @override
   DescriptionValidationError? validator(String value) {
     if (value.trim().isEmpty) {
-      return DescriptionValidationError.empty;
+      return null;
     } else if (value.trim().length < minLength) {
       return DescriptionValidationError.tooShort;
     }
@@ -19,9 +19,7 @@ class Description extends FormzInput<String, DescriptionValidationError> {
   }
 
   String? get errorMessage {
-    if (error == DescriptionValidationError.empty) {
-      return 'Please describe what happened';
-    } else if (error == DescriptionValidationError.tooShort) {
+    if (error == DescriptionValidationError.tooShort) {
       return 'Description must be at least $minLength characters';
     }
     return null;

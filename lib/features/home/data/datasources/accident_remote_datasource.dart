@@ -31,7 +31,6 @@ class AccidentRemoteDatasource {
   }) async {
     try {
       final locationQuality = _getLocationQuality(accuracy);
-
       final accidentResponse = await _supabase
           .from('accidents')
           .insert({
@@ -58,29 +57,35 @@ class AccidentRemoteDatasource {
       final accidentId = accidentResponse['id'] as String;
 
       if (imageFile != null) {
-        final fileName =
-            '$reporterName-${DateTime.now().microsecondsSinceEpoch}.jpg';
-        final filePath = 'incidents/$fileName';
+        try {
+          final fileName =
+              '$reporterName-${DateTime.now().microsecondsSinceEpoch}.jpg';
+          final filePath = 'incidents/$fileName';
 
-        await _supabase.storage
-            .from('accidents_images')
-            .upload(
-              filePath,
-              imageFile,
-              fileOptions: const FileOptions(
-                cacheControl: '3600',
-                upsert: false,
-              ),
-            );
+          await _supabase.storage
+              .from('accidents_images')
+              .upload(
+                filePath,
+                imageFile,
+                fileOptions: const FileOptions(
+                  cacheControl: '3600',
+                  upsert: false,
+                ),
+              );
 
-        final publicImageUrl = _supabase.storage
-            .from('accidents_images')
-            .getPublicUrl(filePath);
-
-        await _supabase.from('accident_images').insert({
-          'accident_id': accidentId,
-          'url': publicImageUrl,
-        });
+          final publicImageUrl = _supabase.storage
+              .from('accidents_images')
+              .getPublicUrl(filePath);
+          await _supabase.from('accident_images').insert({
+            'accident_id': accidentId,
+            'url': publicImageUrl,
+          });
+        } catch (e) {
+          // If image upload or metadata insertion fails, delete the accident record
+          // to prevent orphaned reports.
+          await _supabase.from('accidents').delete().eq('id', accidentId);
+          rethrow;
+        }
       }
     } catch (e) {
       rethrow;

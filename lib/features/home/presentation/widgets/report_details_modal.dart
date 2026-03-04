@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:shimmer/shimmer.dart';
+import 'package:timeago/timeago.dart' as timeago;
+import 'package:url_launcher/url_launcher.dart';
 
 class ReportDetailsModal extends StatefulWidget {
   final String id;
@@ -17,6 +18,8 @@ class ReportDetailsModal extends StatefulWidget {
   final String? severity;
   final AccidentStatus? accidentStatus;
   final DateTime? updatedAt;
+  final double latitude;
+  final double longitude;
 
   const ReportDetailsModal({
     super.key,
@@ -30,6 +33,8 @@ class ReportDetailsModal extends StatefulWidget {
     this.severity,
     this.accidentStatus,
     this.updatedAt,
+    required this.latitude,
+    required this.longitude,
   });
 
   @override
@@ -494,24 +499,7 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () {
-              // TODO: Implement view on map
-              context.pop();
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'View on Map - Coming Soon',
-                    style: GoogleFonts.inter(),
-                  ),
-                  backgroundColor: Colors.blue[700],
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            },
+            onPressed: _viewOnMap,
             icon: const Icon(Icons.map, size: 20),
             label: Text(
               'View on Map',
@@ -531,51 +519,50 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
             ),
           ),
         ),
-
-        const SizedBox(height: 12),
-
-        // Share Report Button
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () {
-              // TODO: Implement share
-              context.pop();
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Share Report - Coming Soon',
-                    style: GoogleFonts.inter(),
-                  ),
-                  backgroundColor: Colors.grey[700],
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            },
-            icon: Icon(Icons.share, size: 20, color: Colors.grey[700]),
-            label: Text(
-              'Share Report',
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              side: BorderSide(color: Colors.grey[300]!, width: 1.5),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
       ],
     );
+  }
+
+  Future<void> _viewOnMap() async {
+    final double lat = widget.latitude;
+    final double lng = widget.longitude;
+
+    // Standard Google Maps URL for web/iOS/Android
+    final googleMapsUrl = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+    );
+
+    // Apple Maps URL
+    final appleMapsUrl = Uri.parse('https://maps.apple.com/?q=$lat,$lng');
+
+    // Android "geo" scheme (direct to map apps)
+    final geoUrl = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
+
+    try {
+      // 1. Try Android geo scheme first if on Android
+      if (Theme.of(context).platform == TargetPlatform.android) {
+        if (await canLaunchUrl(geoUrl)) {
+          await launchUrl(geoUrl);
+          return;
+        }
+      }
+
+      // 2. Try specialized app URLs (Google Maps / Apple Maps)
+      if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(appleMapsUrl)) {
+        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
+      } else {
+        // 3. Fallback: Launch in browser if no map apps are found (common on emulators)
+        await launchUrl(googleMapsUrl, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error opening map: $e')));
+      }
+    }
   }
 
   String _formatDateTime(DateTime dateTime) {
