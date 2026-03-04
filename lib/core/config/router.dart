@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:eyesos/core/presentation/layouts/root_screen.dart';
 import 'package:eyesos/core/presentation/pages/splash_page.dart';
+import 'package:eyesos/features/auth/bloc/session_bloc.dart';
+import 'package:eyesos/features/auth/bloc/session_state.dart';
 import 'package:eyesos/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:eyesos/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:eyesos/features/home/presentation/pages/accident_report_page.dart';
@@ -15,6 +18,23 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
 
 CustomTransitionPage _slideTransition({
   required GoRouterState state,
@@ -35,80 +55,115 @@ CustomTransitionPage _slideTransition({
   );
 }
 
-final GoRouter router = GoRouter(
-  navigatorKey: _rootNavigatorKey,
-  initialLocation: '/splash',
-  routes: [
-    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-    GoRoute(path: '/welcome', builder: (context, state) => const WelcomePage()),
-    GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
-    GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
+String? _redirect(
+  BuildContext context,
+  GoRouterState state,
+  SessionBloc sessionBloc,
+) {
+  final isLoggedIn = sessionBloc.state is AuthAuthenticated;
 
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) {
-        return RootScreen(navigationShell: navigationShell);
-      },
-      branches: [
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/home',
-              builder: (context, state) => const HomePage(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/maps',
-              builder: (context, state) => const MapsPage(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/profile',
-              builder: (context, state) => const ProfilePage(),
-            ),
-          ],
-        ),
-      ],
-    ),
+  // Always allow splash
+  if (state.matchedLocation == '/splash') {
+    return null;
+  }
 
-    GoRoute(
-      path: '/accident-report',
-      parentNavigatorKey: _rootNavigatorKey,
-      pageBuilder: (context, state) =>
-          _slideTransition(state: state, child: const AccidentReportPage()),
-    ),
-    GoRoute(
-      path: '/camera',
-      parentNavigatorKey: _rootNavigatorKey,
-      pageBuilder: (context, state) => _slideTransition(
-        state: state,
-        child: CameraScreen(camera: state.extra as CameraDescription),
+  // Redirect to signin if not logged in and trying to access protected routes
+  if (!isLoggedIn &&
+      state.matchedLocation != '/signin' &&
+      state.matchedLocation != '/signup' &&
+      state.matchedLocation != '/welcome') {
+    return '/signin';
+  }
+
+  // Redirect to home if logged in and trying to access auth pages
+  if (isLoggedIn &&
+      (state.matchedLocation == '/signin' ||
+          state.matchedLocation == '/signup' ||
+          state.matchedLocation == '/welcome')) {
+    return '/home';
+  }
+
+  return null;
+}
+
+GoRouter createRouter(SessionBloc sessionBloc) {
+  return GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: '/splash',
+    refreshListenable: GoRouterRefreshStream(sessionBloc.stream),
+    redirect: (context, state) => _redirect(context, state, sessionBloc),
+    routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
       ),
-    ),
-    GoRoute(
-      path: '/gallery',
-      parentNavigatorKey: _rootNavigatorKey,
-      pageBuilder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>;
-        return _slideTransition(
-          state: state,
-          child: FullScreenImageGallery(
-            imageUrls: extra['imageUrls'] as List<String>,
-            initialIndex: extra['initialIndex'] as int,
+      GoRoute(
+        path: '/welcome',
+        builder: (context, state) => const WelcomePage(),
+      ),
+      GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
+      GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
+
+      ShellRoute(
+        builder: (context, state, child) {
+          return RootScreen(child: child);
+        },
+        routes: [
+          GoRoute(
+            path: '/home',
+            pageBuilder: (context, state) {
+              return const NoTransitionPage(child: HomePage());
+            },
           ),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/report-history',
-      parentNavigatorKey: _rootNavigatorKey,
-      pageBuilder: (context, state) =>
-          _slideTransition(state: state, child: const ReportHistoryPage()),
-    ),
-  ],
-);
+          GoRoute(
+            path: '/maps',
+            pageBuilder: (context, state) {
+              return const NoTransitionPage(child: MapsPage());
+            },
+          ),
+          GoRoute(
+            path: '/profile',
+            pageBuilder: (context, state) {
+              return const NoTransitionPage(child: ProfilePage());
+            },
+          ),
+        ],
+      ),
+
+      GoRoute(
+        path: '/accident-report',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const AccidentReportPage()),
+      ),
+      GoRoute(
+        path: '/camera',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) => _slideTransition(
+          state: state,
+          child: CameraScreen(camera: state.extra as CameraDescription),
+        ),
+      ),
+      GoRoute(
+        path: '/gallery',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return _slideTransition(
+            state: state,
+            child: FullScreenImageGallery(
+              imageUrls: extra['imageUrls'] as List<String>,
+              initialIndex: extra['initialIndex'] as int,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/report-history',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const ReportHistoryPage()),
+      ),
+    ],
+  );
+}

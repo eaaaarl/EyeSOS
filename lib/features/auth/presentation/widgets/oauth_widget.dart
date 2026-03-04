@@ -42,12 +42,12 @@ class GoogleSignInButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
         ),
         child: isLoading
-            ? SizedBox(
-                height: 24,
-                width: 24,
+            ? const SizedBox(
+                height: 20,
+                width: 20,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[800]!),
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
                 ),
               )
             : Row(
