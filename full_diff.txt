@@ -1,521 +1,1654 @@
-diff --git a/android/app/src/main/AndroidManifest.xml b/android/app/src/main/AndroidManifest.xml
-index e04479b..a72942a 100644
---- a/android/app/src/main/AndroidManifest.xml
-+++ b/android/app/src/main/AndroidManifest.xml
-@@ -47,6 +47,15 @@
-             <action android:name="android.intent.action.PROCESS_TEXT"/>
-             <data android:mimeType="text/plain"/>
-         </intent>
--
-+        <!-- Support for launching Maps -->
-+        <intent>
-+            <action android:name="android.intent.action.VIEW" />
-+            <data android:scheme="geo" />
-+        </intent>
-+        <!-- Support for launching URLs in browser -->
-+        <intent>
-+            <action android:name="android.intent.action.VIEW" />
-+            <data android:scheme="https" />
-+        </intent>
-     </queries>
- </manifest>
-diff --git a/lib/core/validation/description.dart b/lib/core/validation/description.dart
-index e3c8a59..aa8e8e1 100644
---- a/lib/core/validation/description.dart
-+++ b/lib/core/validation/description.dart
-@@ -1,17 +1,17 @@
- import 'package:formz/formz.dart';
+diff --git a/full_diff.txt b/full_diff.txt
+index ff7b106..e69de29 100644
+--- a/full_diff.txt
++++ b/full_diff.txt
+@@ -1,521 +0,0 @@
+-diff --git a/android/app/src/main/AndroidManifest.xml b/android/app/src/main/AndroidManifest.xml
+-index e04479b..a72942a 100644
+---- a/android/app/src/main/AndroidManifest.xml
+-+++ b/android/app/src/main/AndroidManifest.xml
+-@@ -47,6 +47,15 @@
+-             <action android:name="android.intent.action.PROCESS_TEXT"/>
+-             <data android:mimeType="text/plain"/>
+-         </intent>
+--
+-+        <!-- Support for launching Maps -->
+-+        <intent>
+-+            <action android:name="android.intent.action.VIEW" />
+-+            <data android:scheme="geo" />
+-+        </intent>
+-+        <!-- Support for launching URLs in browser -->
+-+        <intent>
+-+            <action android:name="android.intent.action.VIEW" />
+-+            <data android:scheme="https" />
+-+        </intent>
+-     </queries>
+- </manifest>
+-diff --git a/lib/core/validation/description.dart b/lib/core/validation/description.dart
+-index e3c8a59..aa8e8e1 100644
+---- a/lib/core/validation/description.dart
+-+++ b/lib/core/validation/description.dart
+-@@ -1,17 +1,17 @@
+- import 'package:formz/formz.dart';
+- 
+--enum DescriptionValidationError { empty, tooShort }
+-+enum DescriptionValidationError { tooShort }
+- 
+- class Description extends FormzInput<String, DescriptionValidationError> {
+-   const Description.pure() : super.pure('');
+-   const Description.dirty([super.value = '']) : super.dirty();
+- 
+--  static const int minLength = 10;
+-+  static const int minLength = 5;
+- 
+-   @override
+-   DescriptionValidationError? validator(String value) {
+-     if (value.trim().isEmpty) {
+--      return DescriptionValidationError.empty;
+-+      return null;
+-     } else if (value.trim().length < minLength) {
+-       return DescriptionValidationError.tooShort;
+-     }
+-@@ -19,9 +19,7 @@ class Description extends FormzInput<String, DescriptionValidationError> {
+-   }
+- 
+-   String? get errorMessage {
+--    if (error == DescriptionValidationError.empty) {
+--      return 'Please describe what happened';
+--    } else if (error == DescriptionValidationError.tooShort) {
+-+    if (error == DescriptionValidationError.tooShort) {
+-       return 'Description must be at least $minLength characters';
+-     }
+-     return null;
+-diff --git a/lib/features/home/bloc/accident_report_bloc.dart b/lib/features/home/bloc/accident_report_bloc.dart
+-index d13e21a..f69f6a6 100644
+---- a/lib/features/home/bloc/accident_report_bloc.dart
+-+++ b/lib/features/home/bloc/accident_report_bloc.dart
+-@@ -131,10 +131,40 @@ class AccidentReportBloc
+-           position.latitude,
+-           position.longitude,
+-         ).timeout(const Duration(seconds: 5));
+-+
+-         if (placemarks.isNotEmpty) {
+-           Placemark place = placemarks[0];
+--          address =
+--              "${place.street ?? ''}, ${place.locality ?? ''}, ${place.subAdministrativeArea ?? ''}";
+-+          // Find the first non-empty subLocality (Barangay/Poblacion) in the list
+-+          String? subLocality;
+-+          for (var p in placemarks) {
+-+            if (p.subLocality != null && p.subLocality!.isNotEmpty) {
+-+              subLocality = p.subLocality;
+-+              break;
+-+            }
+-+          }
+-+
+-+          // Fallback check if any placemark name contains "Poblacion"
+-+          if (subLocality == null) {
+-+            for (var p in placemarks) {
+-+              if (p.name != null &&
+-+                  p.name!.toLowerCase().contains('poblacion')) {
+-+                subLocality = p.name;
+-+                break;
+-+              }
+-+            }
+-+          }
+-+
+-+          // Build address from components
+-+          final addressParts = [
+-+            subLocality, // Barangay (e.g., Poblacion)
+-+            place.thoroughfare, // Street
+-+            place.locality, // Municipality/City
+-+            place.subAdministrativeArea, // Province
+-+          ];
+-+
+-+          address = addressParts
+-+              .where((part) => part != null && part.isNotEmpty)
+-+              .join(', ');
+- 
+-           emit(state.copyWith(currentAddress: address));
+-         }
+-diff --git a/lib/features/home/data/datasources/accident_remote_datasource.dart b/lib/features/home/data/datasources/accident_remote_datasource.dart
+-index f83056d..e702404 100644
+---- a/lib/features/home/data/datasources/accident_remote_datasource.dart
+-+++ b/lib/features/home/data/datasources/accident_remote_datasource.dart
+-@@ -31,7 +31,6 @@ class AccidentRemoteDatasource {
+-   }) async {
+-     try {
+-       final locationQuality = _getLocationQuality(accuracy);
+--
+-       final accidentResponse = await _supabase
+-           .from('accidents')
+-           .insert({
+-@@ -58,29 +57,35 @@ class AccidentRemoteDatasource {
+-       final accidentId = accidentResponse['id'] as String;
+- 
+-       if (imageFile != null) {
+--        final fileName =
+--            '$reporterName-${DateTime.now().microsecondsSinceEpoch}.jpg';
+--        final filePath = 'incidents/$fileName';
+--
+--        await _supabase.storage
+--            .from('accidents_images')
+--            .upload(
+--              filePath,
+--              imageFile,
+--              fileOptions: const FileOptions(
+--                cacheControl: '3600',
+--                upsert: false,
+--              ),
+--            );
+-+        try {
+-+          final fileName =
+-+              '$reporterName-${DateTime.now().microsecondsSinceEpoch}.jpg';
+-+          final filePath = 'incidents/$fileName';
+- 
+--        final publicImageUrl = _supabase.storage
+--            .from('accidents_images')
+--            .getPublicUrl(filePath);
+-+          await _supabase.storage
+-+              .from('accidents_images')
+-+              .upload(
+-+                filePath,
+-+                imageFile,
+-+                fileOptions: const FileOptions(
+-+                  cacheControl: '3600',
+-+                  upsert: false,
+-+                ),
+-+              );
+- 
+--        await _supabase.from('accident_images').insert({
+--          'accident_id': accidentId,
+--          'url': publicImageUrl,
+--        });
+-+          final publicImageUrl = _supabase.storage
+-+              .from('accidents_images')
+-+              .getPublicUrl(filePath);
+-+          await _supabase.from('accident_images').insert({
+-+            'accident_id': accidentId,
+-+            'url': publicImageUrl,
+-+          });
+-+        } catch (e) {
+-+          // If image upload or metadata insertion fails, delete the accident record
+-+          // to prevent orphaned reports.
+-+          await _supabase.from('accidents').delete().eq('id', accidentId);
+-+          rethrow;
+-+        }
+-       }
+-     } catch (e) {
+-       rethrow;
+-diff --git a/lib/features/home/domain/entities/incident_severity_entity.dart b/lib/features/home/domain/entities/incident_severity_entity.dart
+-index 0a409b9..9c4a047 100644
+---- a/lib/features/home/domain/entities/incident_severity_entity.dart
+-+++ b/lib/features/home/domain/entities/incident_severity_entity.dart
+-@@ -4,8 +4,7 @@ enum IncidentSeverityEntity {
+-   minor,
+-   moderate,
+-   high,
+--  critical,
+--  emergency;
+-+  critical;
+- 
+-   String get label {
+-     switch (this) {
+-@@ -17,23 +16,19 @@ enum IncidentSeverityEntity {
+-         return 'High';
+-       case IncidentSeverityEntity.critical:
+-         return 'Critical';
+--      case IncidentSeverityEntity.emergency:
+--        return 'Emergency';
+-     }
+-   }
+- 
+-   String get description {
+-     switch (this) {
+-       case IncidentSeverityEntity.minor:
+--        return 'Scratches, small dents, no injuries';
+-+        return 'Scratches, small dents, or cosmetic damage. No injuries reported.';
+-       case IncidentSeverityEntity.moderate:
+--        return 'Significant damage, minor injuries';
+-+        return 'Significant damage (e.g., broken lights, body dents). Minor injuries needing basic first aid.';
+-       case IncidentSeverityEntity.high:
+--        return 'Severe damage, major injuries';
+-+        return 'Severe vehicle damage (e.g., airbags deployed). Major injuries requiring medical attention.';
+-       case IncidentSeverityEntity.critical:
+--        return 'Life-threatening situation';
+--      case IncidentSeverityEntity.emergency:
+--        return 'Immediate assistance required, fire or fatal';
+-+        return 'Life-threatening situation. Multiple vehicles, fire, or unconscious persons. Call MDRRMC/Emergency immediately.';
+-     }
+-   }
+- 
+-@@ -47,8 +42,6 @@ enum IncidentSeverityEntity {
+-         return Colors.orange[700]!;
+-       case IncidentSeverityEntity.critical:
+-         return Colors.red[700]!;
+--      case IncidentSeverityEntity.emergency:
+--        return Colors.red[900]!;
+-     }
+-   }
+- 
+-@@ -62,8 +55,6 @@ enum IncidentSeverityEntity {
+-         return Icons.warning_rounded;
+-       case IncidentSeverityEntity.critical:
+-         return Icons.error_outline_rounded;
+--      case IncidentSeverityEntity.emergency:
+--        return Icons.local_fire_department_rounded;
+-     }
+-   }
+- }
+-diff --git a/lib/features/home/presentation/pages/accident_report_page.dart b/lib/features/home/presentation/pages/accident_report_page.dart
+-index e3c0584..f670825 100644
+---- a/lib/features/home/presentation/pages/accident_report_page.dart
+-+++ b/lib/features/home/presentation/pages/accident_report_page.dart
+-@@ -787,11 +787,9 @@ class _AccidentReportPageState extends State<AccidentReportPage> {
+-         },
+-         decoration: InputDecoration(
+-           hintText:
+--              'Describe what happened...\n\nExample: Two-car collision at the intersection. No injuries reported.',
+-+              'Describe what happened... (Optional)\n\nExample: Two-car collision at the intersection. No injuries reported.',
+-           hintStyle: GoogleFonts.inter(color: Colors.grey[400], fontSize: 14),
+--          errorText: state.description.displayError != null
+--              ? 'Min 10 characters required'
+--              : null,
+-+          errorText: state.description.errorMessage,
+-           border: OutlineInputBorder(
+-             borderRadius: BorderRadius.circular(16),
+-             borderSide: BorderSide.none,
+-diff --git a/lib/features/home/presentation/pages/home_page.dart b/lib/features/home/presentation/pages/home_page.dart
+-index 9fdd384..bddce5e 100644
+---- a/lib/features/home/presentation/pages/home_page.dart
+-+++ b/lib/features/home/presentation/pages/home_page.dart
+-@@ -95,6 +95,8 @@ class _HomeTabState extends State<HomePage> {
+-           severity: report.severity,
+-           accidentStatus: report.accidentStatus,
+-           updatedAt: report.updatedAt,
+-+          latitude: report.latitude,
+-+          longitude: report.longitude,
+-         ),
+-       ),
+-     );
+-diff --git a/lib/features/home/presentation/widgets/recent_reports_section.dart b/lib/features/home/presentation/widgets/recent_reports_section.dart
+-index cc83338..d3d6ae0 100644
+---- a/lib/features/home/presentation/widgets/recent_reports_section.dart
+-+++ b/lib/features/home/presentation/widgets/recent_reports_section.dart
+-@@ -7,6 +7,7 @@ import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart
+- import 'package:eyesos/features/home/presentation/widgets/report_item_card.dart';
+- import 'package:flutter/material.dart';
+- import 'package:flutter_bloc/flutter_bloc.dart';
+-+import 'package:go_router/go_router.dart';
+- import 'package:google_fonts/google_fonts.dart';
+- import 'package:skeletonizer/skeletonizer.dart';
+- import 'package:timeago/timeago.dart' as timeago;
+-@@ -47,19 +48,7 @@ class RecentReportsSection extends StatelessWidget {
+-               ),
+-               TextButton(
+-                 onPressed: () {
+--                  ScaffoldMessenger.of(context).showSnackBar(
+--                    SnackBar(
+--                      content: Text(
+--                        'View All Reports - Coming Soon',
+--                        style: GoogleFonts.inter(),
+--                      ),
+--                      backgroundColor: Colors.blue[700],
+--                      behavior: SnackBarBehavior.floating,
+--                      shape: RoundedRectangleBorder(
+--                        borderRadius: BorderRadius.circular(10),
+--                      ),
+--                    ),
+--                  );
+-+                  context.push('/report-history');
+-                 },
+-                 child: Row(
+-                   children: [
+-@@ -68,8 +57,15 @@ class RecentReportsSection extends StatelessWidget {
+-                       style: GoogleFonts.inter(
+-                         color: Colors.red[700],
+-                         fontWeight: FontWeight.w600,
+-+                        fontSize: 13,
+-                       ),
+-                     ),
+-+                    const SizedBox(width: 4),
+-+                    Icon(
+-+                      Icons.arrow_forward_ios,
+-+                      size: 12,
+-+                      color: Colors.red[700],
+-+                    ),
+-                   ],
+-                 ),
+-               ),
+-@@ -240,7 +236,7 @@ class RecentReportsSection extends StatelessWidget {
+-                     ListView.builder(
+-                       shrinkWrap: true,
+-                       physics: const NeverScrollableScrollPhysics(),
+--                      itemCount: reports.length,
+-+                      itemCount: reports.length > 5 ? 5 : reports.length,
+-                       itemBuilder: (context, index) {
+-                         final report = reports[index];
+-                         return ReportItemCard(
+-diff --git a/lib/features/home/presentation/widgets/report_details_modal.dart b/lib/features/home/presentation/widgets/report_details_modal.dart
+-index ac7b968..6308e3a 100644
+---- a/lib/features/home/presentation/widgets/report_details_modal.dart
+-+++ b/lib/features/home/presentation/widgets/report_details_modal.dart
+-@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
+- import 'package:go_router/go_router.dart';
+- import 'package:google_fonts/google_fonts.dart';
+- import 'package:cached_network_image/cached_network_image.dart';
+--import 'package:timeago/timeago.dart' as timeago;
+- import 'package:shimmer/shimmer.dart';
+-+import 'package:timeago/timeago.dart' as timeago;
+-+import 'package:url_launcher/url_launcher.dart';
+- 
+- class ReportDetailsModal extends StatefulWidget {
+-   final String id;
+-@@ -17,6 +18,8 @@ class ReportDetailsModal extends StatefulWidget {
+-   final String? severity;
+-   final AccidentStatus? accidentStatus;
+-   final DateTime? updatedAt;
+-+  final double latitude;
+-+  final double longitude;
+- 
+-   const ReportDetailsModal({
+-     super.key,
+-@@ -30,6 +33,8 @@ class ReportDetailsModal extends StatefulWidget {
+-     this.severity,
+-     this.accidentStatus,
+-     this.updatedAt,
+-+    required this.latitude,
+-+    required this.longitude,
+-   });
+- 
+-   @override
+-@@ -494,24 +499,7 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
+-         SizedBox(
+-           width: double.infinity,
+-           child: ElevatedButton.icon(
+--            onPressed: () {
+--              // TODO: Implement view on map
+--              context.pop();
+--
+--              ScaffoldMessenger.of(context).showSnackBar(
+--                SnackBar(
+--                  content: Text(
+--                    'View on Map - Coming Soon',
+--                    style: GoogleFonts.inter(),
+--                  ),
+--                  backgroundColor: Colors.blue[700],
+--                  behavior: SnackBarBehavior.floating,
+--                  shape: RoundedRectangleBorder(
+--                    borderRadius: BorderRadius.circular(10),
+--                  ),
+--                ),
+--              );
+--            },
+-+            onPressed: _viewOnMap,
+-             icon: const Icon(Icons.map, size: 20),
+-             label: Text(
+-               'View on Map',
+-@@ -531,51 +519,50 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
+-             ),
+-           ),
+-         ),
+-+      ],
+-+    );
+-+  }
+- 
+--        const SizedBox(height: 12),
+-+  Future<void> _viewOnMap() async {
+-+    final double lat = widget.latitude;
+-+    final double lng = widget.longitude;
+- 
+--        // Share Report Button
+--        SizedBox(
+--          width: double.infinity,
+--          child: OutlinedButton.icon(
+--            onPressed: () {
+--              // TODO: Implement share
+--              context.pop();
+--
+--              ScaffoldMessenger.of(context).showSnackBar(
+--                SnackBar(
+--                  content: Text(
+--                    'Share Report - Coming Soon',
+--                    style: GoogleFonts.inter(),
+--                  ),
+--                  backgroundColor: Colors.grey[700],
+--                  behavior: SnackBarBehavior.floating,
+--                  shape: RoundedRectangleBorder(
+--                    borderRadius: BorderRadius.circular(10),
+--                  ),
+--                ),
+--              );
+--            },
+--            icon: Icon(Icons.share, size: 20, color: Colors.grey[700]),
+--            label: Text(
+--              'Share Report',
+--              style: GoogleFonts.poppins(
+--                fontSize: 15,
+--                fontWeight: FontWeight.w600,
+--                color: Colors.grey[700],
+--              ),
+--            ),
+--            style: OutlinedButton.styleFrom(
+--              padding: const EdgeInsets.symmetric(vertical: 16),
+--              side: BorderSide(color: Colors.grey[300]!, width: 1.5),
+--              shape: RoundedRectangleBorder(
+--                borderRadius: BorderRadius.circular(12),
+--              ),
+--            ),
+--          ),
+--        ),
+--      ],
+-+    // Standard Google Maps URL for web/iOS/Android
+-+    final googleMapsUrl = Uri.parse(
+-+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+-     );
+-+
+-+    // Apple Maps URL
+-+    final appleMapsUrl = Uri.parse('https://maps.apple.com/?q=$lat,$lng');
+-+
+-+    // Android "geo" scheme (direct to map apps)
+-+    final geoUrl = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
+-+
+-+    try {
+-+      // 1. Try Android geo scheme first if on Android
+-+      if (Theme.of(context).platform == TargetPlatform.android) {
+-+        if (await canLaunchUrl(geoUrl)) {
+-+          await launchUrl(geoUrl);
+-+          return;
+-+        }
+-+      }
+-+
+-+      // 2. Try specialized app URLs (Google Maps / Apple Maps)
+-+      if (await canLaunchUrl(googleMapsUrl)) {
+-+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+-+      } else if (await canLaunchUrl(appleMapsUrl)) {
+-+        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
+-+      } else {
+-+        // 3. Fallback: Launch in browser if no map apps are found (common on emulators)
+-+        await launchUrl(googleMapsUrl, mode: LaunchMode.platformDefault);
+-+      }
+-+    } catch (e) {
+-+      if (mounted) {
+-+        ScaffoldMessenger.of(
+-+          context,
+-+        ).showSnackBar(SnackBar(content: Text('Error opening map: $e')));
+-+      }
+-+    }
+-   }
+- 
+-   String _formatDateTime(DateTime dateTime) {
+-diff --git a/lib/features/profile/presentation/pages/report_history_page.dart b/lib/features/profile/presentation/pages/report_history_page.dart
+-index cf2144d..01c48ec 100644
+---- a/lib/features/profile/presentation/pages/report_history_page.dart
+-+++ b/lib/features/profile/presentation/pages/report_history_page.dart
+-@@ -76,8 +76,6 @@ class _ReportHistoryPageState extends State<ReportHistoryPage> {
+-       context.read<AccidentsReportLoadBloc>().add(
+-         RefreshReports(userId: sessionState.userId),
+-       );
+--      // Wait for the state to update (optional, Bloc usually handles this)
+--      await Future.delayed(const Duration(milliseconds: 500));
+-     }
+-   }
+- 
+-@@ -101,6 +99,8 @@ class _ReportHistoryPageState extends State<ReportHistoryPage> {
+-           severity: report.severity,
+-           accidentStatus: report.accidentStatus,
+-           updatedAt: report.updatedAt,
+-+          latitude: report.latitude,
+-+          longitude: report.longitude,
+-         ),
+-       ),
+-     );
+-diff --git a/pubspec.lock b/pubspec.lock
+-index 87f89d8..119b1e3 100644
+---- a/pubspec.lock
+-+++ b/pubspec.lock
+-@@ -1366,7 +1366,7 @@ packages:
+-     source: hosted
+-     version: "2.3.1"
+-   url_launcher:
+--    dependency: transitive
+-+    dependency: "direct main"
+-     description:
+-       name: url_launcher
+-       sha256: f6a7e5c4835bb4e3026a04793a4199ca2d14c739ec378fdfe23fc8075d0439f8
+-diff --git a/pubspec.yaml b/pubspec.yaml
+-index da8dbe0..88b380c 100644
+---- a/pubspec.yaml
+-+++ b/pubspec.yaml
+-@@ -66,6 +66,7 @@ dependencies:
+-   internet_connection_checker_plus: ^2.9.1+2
+-   http: ^1.6.0
+-   go_router: ^17.1.0
+-+  url_launcher: ^6.3.2
+- 
+- dev_dependencies:
+-   flutter_test:
+diff --git a/lib/app.dart b/lib/app.dart
+index 458191f..1143c7d 100644
+--- a/lib/app.dart
++++ b/lib/app.dart
+@@ -1,15 +1,77 @@
+ import 'package:eyesos/core/config/router.dart';
++import 'package:eyesos/features/auth/bloc/session_bloc.dart';
+ import 'package:flutter/material.dart';
++import 'package:flutter_bloc/flutter_bloc.dart';
++import 'package:go_router/go_router.dart';
  
--enum DescriptionValidationError { empty, tooShort }
-+enum DescriptionValidationError { tooShort }
+-class MyApp extends StatelessWidget {
++class MyApp extends StatefulWidget {
+   const MyApp({super.key});
  
- class Description extends FormzInput<String, DescriptionValidationError> {
-   const Description.pure() : super.pure('');
-   const Description.dirty([super.value = '']) : super.dirty();
- 
--  static const int minLength = 10;
-+  static const int minLength = 5;
- 
++  @override
++  State<MyApp> createState() => _MyAppState();
++}
++
++class _MyAppState extends State<MyApp> {
++  late final GoRouter _router;
++
++  @override
++  void initState() {
++    super.initState();
++    _router = createRouter(context.read<SessionBloc>());
++  }
++
    @override
-   DescriptionValidationError? validator(String value) {
-     if (value.trim().isEmpty) {
--      return DescriptionValidationError.empty;
-+      return null;
-     } else if (value.trim().length < minLength) {
-       return DescriptionValidationError.tooShort;
-     }
-@@ -19,9 +19,7 @@ class Description extends FormzInput<String, DescriptionValidationError> {
-   }
- 
-   String? get errorMessage {
--    if (error == DescriptionValidationError.empty) {
--      return 'Please describe what happened';
--    } else if (error == DescriptionValidationError.tooShort) {
-+    if (error == DescriptionValidationError.tooShort) {
-       return 'Description must be at least $minLength characters';
-     }
-     return null;
-diff --git a/lib/features/home/bloc/accident_report_bloc.dart b/lib/features/home/bloc/accident_report_bloc.dart
-index d13e21a..f69f6a6 100644
---- a/lib/features/home/bloc/accident_report_bloc.dart
-+++ b/lib/features/home/bloc/accident_report_bloc.dart
-@@ -131,10 +131,40 @@ class AccidentReportBloc
-           position.latitude,
-           position.longitude,
-         ).timeout(const Duration(seconds: 5));
-+
-         if (placemarks.isNotEmpty) {
-           Placemark place = placemarks[0];
--          address =
--              "${place.street ?? ''}, ${place.locality ?? ''}, ${place.subAdministrativeArea ?? ''}";
-+          // Find the first non-empty subLocality (Barangay/Poblacion) in the list
-+          String? subLocality;
-+          for (var p in placemarks) {
-+            if (p.subLocality != null && p.subLocality!.isNotEmpty) {
-+              subLocality = p.subLocality;
-+              break;
-+            }
-+          }
-+
-+          // Fallback check if any placemark name contains "Poblacion"
-+          if (subLocality == null) {
-+            for (var p in placemarks) {
-+              if (p.name != null &&
-+                  p.name!.toLowerCase().contains('poblacion')) {
-+                subLocality = p.name;
-+                break;
-+              }
-+            }
-+          }
-+
-+          // Build address from components
-+          final addressParts = [
-+            subLocality, // Barangay (e.g., Poblacion)
-+            place.thoroughfare, // Street
-+            place.locality, // Municipality/City
-+            place.subAdministrativeArea, // Province
-+          ];
-+
-+          address = addressParts
-+              .where((part) => part != null && part.isNotEmpty)
-+              .join(', ');
- 
-           emit(state.copyWith(currentAddress: address));
-         }
-diff --git a/lib/features/home/data/datasources/accident_remote_datasource.dart b/lib/features/home/data/datasources/accident_remote_datasource.dart
-index f83056d..e702404 100644
---- a/lib/features/home/data/datasources/accident_remote_datasource.dart
-+++ b/lib/features/home/data/datasources/accident_remote_datasource.dart
-@@ -31,7 +31,6 @@ class AccidentRemoteDatasource {
-   }) async {
-     try {
-       final locationQuality = _getLocationQuality(accuracy);
--
-       final accidentResponse = await _supabase
-           .from('accidents')
-           .insert({
-@@ -58,29 +57,35 @@ class AccidentRemoteDatasource {
-       final accidentId = accidentResponse['id'] as String;
- 
-       if (imageFile != null) {
--        final fileName =
--            '$reporterName-${DateTime.now().microsecondsSinceEpoch}.jpg';
--        final filePath = 'incidents/$fileName';
--
--        await _supabase.storage
--            .from('accidents_images')
--            .upload(
--              filePath,
--              imageFile,
--              fileOptions: const FileOptions(
--                cacheControl: '3600',
--                upsert: false,
--              ),
--            );
-+        try {
-+          final fileName =
-+              '$reporterName-${DateTime.now().microsecondsSinceEpoch}.jpg';
-+          final filePath = 'incidents/$fileName';
- 
--        final publicImageUrl = _supabase.storage
--            .from('accidents_images')
--            .getPublicUrl(filePath);
-+          await _supabase.storage
-+              .from('accidents_images')
-+              .upload(
-+                filePath,
-+                imageFile,
-+                fileOptions: const FileOptions(
-+                  cacheControl: '3600',
-+                  upsert: false,
-+                ),
-+              );
- 
--        await _supabase.from('accident_images').insert({
--          'accident_id': accidentId,
--          'url': publicImageUrl,
--        });
-+          final publicImageUrl = _supabase.storage
-+              .from('accidents_images')
-+              .getPublicUrl(filePath);
-+          await _supabase.from('accident_images').insert({
-+            'accident_id': accidentId,
-+            'url': publicImageUrl,
-+          });
-+        } catch (e) {
-+          // If image upload or metadata insertion fails, delete the accident record
-+          // to prevent orphaned reports.
-+          await _supabase.from('accidents').delete().eq('id', accidentId);
-+          rethrow;
-+        }
-       }
-     } catch (e) {
-       rethrow;
-diff --git a/lib/features/home/domain/entities/incident_severity_entity.dart b/lib/features/home/domain/entities/incident_severity_entity.dart
-index 0a409b9..9c4a047 100644
---- a/lib/features/home/domain/entities/incident_severity_entity.dart
-+++ b/lib/features/home/domain/entities/incident_severity_entity.dart
-@@ -4,8 +4,7 @@ enum IncidentSeverityEntity {
-   minor,
-   moderate,
-   high,
--  critical,
--  emergency;
-+  critical;
- 
-   String get label {
-     switch (this) {
-@@ -17,23 +16,19 @@ enum IncidentSeverityEntity {
-         return 'High';
-       case IncidentSeverityEntity.critical:
-         return 'Critical';
--      case IncidentSeverityEntity.emergency:
--        return 'Emergency';
-     }
-   }
- 
-   String get description {
-     switch (this) {
-       case IncidentSeverityEntity.minor:
--        return 'Scratches, small dents, no injuries';
-+        return 'Scratches, small dents, or cosmetic damage. No injuries reported.';
-       case IncidentSeverityEntity.moderate:
--        return 'Significant damage, minor injuries';
-+        return 'Significant damage (e.g., broken lights, body dents). Minor injuries needing basic first aid.';
-       case IncidentSeverityEntity.high:
--        return 'Severe damage, major injuries';
-+        return 'Severe vehicle damage (e.g., airbags deployed). Major injuries requiring medical attention.';
-       case IncidentSeverityEntity.critical:
--        return 'Life-threatening situation';
--      case IncidentSeverityEntity.emergency:
--        return 'Immediate assistance required, fire or fatal';
-+        return 'Life-threatening situation. Multiple vehicles, fire, or unconscious persons. Call MDRRMC/Emergency immediately.';
-     }
-   }
- 
-@@ -47,8 +42,6 @@ enum IncidentSeverityEntity {
-         return Colors.orange[700]!;
-       case IncidentSeverityEntity.critical:
-         return Colors.red[700]!;
--      case IncidentSeverityEntity.emergency:
--        return Colors.red[900]!;
-     }
-   }
- 
-@@ -62,8 +55,6 @@ enum IncidentSeverityEntity {
-         return Icons.warning_rounded;
-       case IncidentSeverityEntity.critical:
-         return Icons.error_outline_rounded;
--      case IncidentSeverityEntity.emergency:
--        return Icons.local_fire_department_rounded;
-     }
+   Widget build(BuildContext context) {
+     return MaterialApp.router(
+       title: 'EyeSOS',
+       debugShowCheckedModeBanner: false,
+-      routerConfig: router,
++      theme: ThemeData(
++        useMaterial3: true,
++        colorScheme: ColorScheme.fromSeed(
++          seedColor: Colors.red[700]!,
++          primary: Colors.red[700],
++          secondary: Colors.red[900],
++          surface: Colors.white,
++        ),
++        scaffoldBackgroundColor: Colors.white,
++        appBarTheme: const AppBarTheme(
++          backgroundColor: Colors.white,
++          foregroundColor: Colors.black,
++          elevation: 0,
++        ),
++        elevatedButtonTheme: ElevatedButtonThemeData(
++          style: ElevatedButton.styleFrom(
++            backgroundColor: Colors.red[700],
++            foregroundColor: Colors.white,
++            shape: RoundedRectangleBorder(
++              borderRadius: BorderRadius.circular(16),
++            ),
++          ),
++        ),
++        inputDecorationTheme: InputDecorationTheme(
++          filled: true,
++          fillColor: Colors.grey[50],
++          border: OutlineInputBorder(
++            borderRadius: BorderRadius.circular(16),
++            borderSide: BorderSide(color: Colors.grey[300]!),
++          ),
++          enabledBorder: OutlineInputBorder(
++            borderRadius: BorderRadius.circular(16),
++            borderSide: BorderSide(color: Colors.grey[300]!),
++          ),
++          focusedBorder: OutlineInputBorder(
++            borderRadius: BorderRadius.circular(16),
++            borderSide: BorderSide(color: Colors.red[700]!, width: 2),
++          ),
++          errorBorder: OutlineInputBorder(
++            borderRadius: BorderRadius.circular(16),
++            borderSide: const BorderSide(color: Colors.red),
++          ),
++          labelStyle: const TextStyle(color: Colors.black54),
++          prefixIconColor: Colors.red[700],
++        ),
++      ),
++      routerConfig: _router,
+     );
    }
  }
-diff --git a/lib/features/home/presentation/pages/accident_report_page.dart b/lib/features/home/presentation/pages/accident_report_page.dart
-index e3c0584..f670825 100644
---- a/lib/features/home/presentation/pages/accident_report_page.dart
-+++ b/lib/features/home/presentation/pages/accident_report_page.dart
-@@ -787,11 +787,9 @@ class _AccidentReportPageState extends State<AccidentReportPage> {
-         },
-         decoration: InputDecoration(
-           hintText:
--              'Describe what happened...\n\nExample: Two-car collision at the intersection. No injuries reported.',
-+              'Describe what happened... (Optional)\n\nExample: Two-car collision at the intersection. No injuries reported.',
-           hintStyle: GoogleFonts.inter(color: Colors.grey[400], fontSize: 14),
--          errorText: state.description.displayError != null
--              ? 'Min 10 characters required'
--              : null,
-+          errorText: state.description.errorMessage,
-           border: OutlineInputBorder(
-             borderRadius: BorderRadius.circular(16),
-             borderSide: BorderSide.none,
-diff --git a/lib/features/home/presentation/pages/home_page.dart b/lib/features/home/presentation/pages/home_page.dart
-index 9fdd384..bddce5e 100644
---- a/lib/features/home/presentation/pages/home_page.dart
-+++ b/lib/features/home/presentation/pages/home_page.dart
-@@ -95,6 +95,8 @@ class _HomeTabState extends State<HomePage> {
-           severity: report.severity,
-           accidentStatus: report.accidentStatus,
-           updatedAt: report.updatedAt,
-+          latitude: report.latitude,
-+          longitude: report.longitude,
-         ),
-       ),
-     );
-diff --git a/lib/features/home/presentation/widgets/recent_reports_section.dart b/lib/features/home/presentation/widgets/recent_reports_section.dart
-index cc83338..d3d6ae0 100644
---- a/lib/features/home/presentation/widgets/recent_reports_section.dart
-+++ b/lib/features/home/presentation/widgets/recent_reports_section.dart
-@@ -7,6 +7,7 @@ import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart
- import 'package:eyesos/features/home/presentation/widgets/report_item_card.dart';
- import 'package:flutter/material.dart';
- import 'package:flutter_bloc/flutter_bloc.dart';
-+import 'package:go_router/go_router.dart';
- import 'package:google_fonts/google_fonts.dart';
- import 'package:skeletonizer/skeletonizer.dart';
- import 'package:timeago/timeago.dart' as timeago;
-@@ -47,19 +48,7 @@ class RecentReportsSection extends StatelessWidget {
-               ),
-               TextButton(
-                 onPressed: () {
--                  ScaffoldMessenger.of(context).showSnackBar(
--                    SnackBar(
--                      content: Text(
--                        'View All Reports - Coming Soon',
--                        style: GoogleFonts.inter(),
--                      ),
--                      backgroundColor: Colors.blue[700],
--                      behavior: SnackBarBehavior.floating,
--                      shape: RoundedRectangleBorder(
--                        borderRadius: BorderRadius.circular(10),
--                      ),
--                    ),
--                  );
-+                  context.push('/report-history');
-                 },
-                 child: Row(
-                   children: [
-@@ -68,8 +57,15 @@ class RecentReportsSection extends StatelessWidget {
-                       style: GoogleFonts.inter(
-                         color: Colors.red[700],
-                         fontWeight: FontWeight.w600,
-+                        fontSize: 13,
-                       ),
-                     ),
-+                    const SizedBox(width: 4),
-+                    Icon(
-+                      Icons.arrow_forward_ios,
-+                      size: 12,
-+                      color: Colors.red[700],
-+                    ),
-                   ],
-                 ),
-               ),
-@@ -240,7 +236,7 @@ class RecentReportsSection extends StatelessWidget {
-                     ListView.builder(
-                       shrinkWrap: true,
-                       physics: const NeverScrollableScrollPhysics(),
--                      itemCount: reports.length,
-+                      itemCount: reports.length > 5 ? 5 : reports.length,
-                       itemBuilder: (context, index) {
-                         final report = reports[index];
-                         return ReportItemCard(
-diff --git a/lib/features/home/presentation/widgets/report_details_modal.dart b/lib/features/home/presentation/widgets/report_details_modal.dart
-index ac7b968..6308e3a 100644
---- a/lib/features/home/presentation/widgets/report_details_modal.dart
-+++ b/lib/features/home/presentation/widgets/report_details_modal.dart
-@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
- import 'package:go_router/go_router.dart';
- import 'package:google_fonts/google_fonts.dart';
- import 'package:cached_network_image/cached_network_image.dart';
--import 'package:timeago/timeago.dart' as timeago;
- import 'package:shimmer/shimmer.dart';
-+import 'package:timeago/timeago.dart' as timeago;
-+import 'package:url_launcher/url_launcher.dart';
+diff --git a/lib/core/config/router.dart b/lib/core/config/router.dart
+index e562a69..676f9dd 100644
+--- a/lib/core/config/router.dart
++++ b/lib/core/config/router.dart
+@@ -1,6 +1,9 @@
++import 'dart:async';
+ import 'package:camera/camera.dart';
+ import 'package:eyesos/core/presentation/layouts/root_screen.dart';
+ import 'package:eyesos/core/presentation/pages/splash_page.dart';
++import 'package:eyesos/features/auth/bloc/session_bloc.dart';
++import 'package:eyesos/features/auth/bloc/session_state.dart';
+ import 'package:eyesos/features/auth/presentation/pages/sign_in_page.dart';
+ import 'package:eyesos/features/auth/presentation/pages/sign_up_page.dart';
+ import 'package:eyesos/features/home/presentation/pages/accident_report_page.dart';
+@@ -16,6 +19,23 @@ import 'package:go_router/go_router.dart';
  
- class ReportDetailsModal extends StatefulWidget {
-   final String id;
-@@ -17,6 +18,8 @@ class ReportDetailsModal extends StatefulWidget {
-   final String? severity;
-   final AccidentStatus? accidentStatus;
-   final DateTime? updatedAt;
-+  final double latitude;
-+  final double longitude;
+ final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
  
-   const ReportDetailsModal({
-     super.key,
-@@ -30,6 +33,8 @@ class ReportDetailsModal extends StatefulWidget {
-     this.severity,
-     this.accidentStatus,
-     this.updatedAt,
-+    required this.latitude,
-+    required this.longitude,
-   });
- 
-   @override
-@@ -494,24 +499,7 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
-         SizedBox(
-           width: double.infinity,
-           child: ElevatedButton.icon(
--            onPressed: () {
--              // TODO: Implement view on map
--              context.pop();
--
--              ScaffoldMessenger.of(context).showSnackBar(
--                SnackBar(
--                  content: Text(
--                    'View on Map - Coming Soon',
--                    style: GoogleFonts.inter(),
--                  ),
--                  backgroundColor: Colors.blue[700],
--                  behavior: SnackBarBehavior.floating,
--                  shape: RoundedRectangleBorder(
--                    borderRadius: BorderRadius.circular(10),
--                  ),
--                ),
--              );
--            },
-+            onPressed: _viewOnMap,
-             icon: const Icon(Icons.map, size: 20),
-             label: Text(
-               'View on Map',
-@@ -531,51 +519,50 @@ class _ReportDetailsModalState extends State<ReportDetailsModal> {
-             ),
-           ),
-         ),
-+      ],
++class GoRouterRefreshStream extends ChangeNotifier {
++  GoRouterRefreshStream(Stream<dynamic> stream) {
++    notifyListeners();
++    _subscription = stream.asBroadcastStream().listen(
++      (dynamic _) => notifyListeners(),
 +    );
 +  }
++
++  late final StreamSubscription<dynamic> _subscription;
++
++  @override
++  void dispose() {
++    _subscription.cancel();
++    super.dispose();
++  }
++}
++
+ CustomTransitionPage _slideTransition({
+   required GoRouterState state,
+   required Widget child,
+@@ -35,80 +55,115 @@ CustomTransitionPage _slideTransition({
+   );
+ }
  
--        const SizedBox(height: 12),
-+  Future<void> _viewOnMap() async {
-+    final double lat = widget.latitude;
-+    final double lng = widget.longitude;
+-final GoRouter router = GoRouter(
+-  navigatorKey: _rootNavigatorKey,
+-  initialLocation: '/splash',
+-  routes: [
+-    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+-    GoRoute(path: '/welcome', builder: (context, state) => const WelcomePage()),
+-    GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
+-    GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
++String? _redirect(
++  BuildContext context,
++  GoRouterState state,
++  SessionBloc sessionBloc,
++) {
++  final isLoggedIn = sessionBloc.state is AuthAuthenticated;
  
--        // Share Report Button
--        SizedBox(
--          width: double.infinity,
--          child: OutlinedButton.icon(
--            onPressed: () {
--              // TODO: Implement share
--              context.pop();
--
+-    StatefulShellRoute.indexedStack(
+-      builder: (context, state, navigationShell) {
+-        return RootScreen(navigationShell: navigationShell);
+-      },
+-      branches: [
+-        StatefulShellBranch(
+-          routes: [
+-            GoRoute(
+-              path: '/home',
+-              builder: (context, state) => const HomePage(),
+-            ),
+-          ],
+-        ),
+-        StatefulShellBranch(
+-          routes: [
+-            GoRoute(
+-              path: '/maps',
+-              builder: (context, state) => const MapsPage(),
+-            ),
+-          ],
+-        ),
+-        StatefulShellBranch(
+-          routes: [
+-            GoRoute(
+-              path: '/profile',
+-              builder: (context, state) => const ProfilePage(),
+-            ),
+-          ],
+-        ),
+-      ],
+-    ),
++  // Always allow splash
++  if (state.matchedLocation == '/splash') {
++    return null;
++  }
++
++  // Redirect to signin if not logged in and trying to access protected routes
++  if (!isLoggedIn &&
++      state.matchedLocation != '/signin' &&
++      state.matchedLocation != '/signup' &&
++      state.matchedLocation != '/welcome') {
++    return '/signin';
++  }
++
++  // Redirect to home if logged in and trying to access auth pages
++  if (isLoggedIn &&
++      (state.matchedLocation == '/signin' ||
++          state.matchedLocation == '/signup' ||
++          state.matchedLocation == '/welcome')) {
++    return '/home';
++  }
+ 
+-    GoRoute(
+-      path: '/accident-report',
+-      parentNavigatorKey: _rootNavigatorKey,
+-      pageBuilder: (context, state) =>
+-          _slideTransition(state: state, child: const AccidentReportPage()),
+-    ),
+-    GoRoute(
+-      path: '/camera',
+-      parentNavigatorKey: _rootNavigatorKey,
+-      pageBuilder: (context, state) => _slideTransition(
+-        state: state,
+-        child: CameraScreen(camera: state.extra as CameraDescription),
++  return null;
++}
++
++GoRouter createRouter(SessionBloc sessionBloc) {
++  return GoRouter(
++    navigatorKey: _rootNavigatorKey,
++    initialLocation: '/splash',
++    refreshListenable: GoRouterRefreshStream(sessionBloc.stream),
++    redirect: (context, state) => _redirect(context, state, sessionBloc),
++    routes: [
++      GoRoute(
++        path: '/splash',
++        builder: (context, state) => const SplashScreen(),
+       ),
+-    ),
+-    GoRoute(
+-      path: '/gallery',
+-      parentNavigatorKey: _rootNavigatorKey,
+-      pageBuilder: (context, state) {
+-        final extra = state.extra as Map<String, dynamic>;
+-        return _slideTransition(
+-          state: state,
+-          child: FullScreenImageGallery(
+-            imageUrls: extra['imageUrls'] as List<String>,
+-            initialIndex: extra['initialIndex'] as int,
++      GoRoute(
++        path: '/welcome',
++        builder: (context, state) => const WelcomePage(),
++      ),
++      GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
++      GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
++
++      ShellRoute(
++        builder: (context, state, child) {
++          return RootScreen(child: child);
++        },
++        routes: [
++          GoRoute(
++            path: '/home',
++            pageBuilder: (context, state) {
++              return const NoTransitionPage(child: HomePage());
++            },
++          ),
++          GoRoute(
++            path: '/maps',
++            pageBuilder: (context, state) {
++              return const NoTransitionPage(child: MapsPage());
++            },
++          ),
++          GoRoute(
++            path: '/profile',
++            pageBuilder: (context, state) {
++              return const NoTransitionPage(child: ProfilePage());
++            },
+           ),
+-        );
+-      },
+-    ),
+-    GoRoute(
+-      path: '/report-history',
+-      parentNavigatorKey: _rootNavigatorKey,
+-      pageBuilder: (context, state) =>
+-          _slideTransition(state: state, child: const ReportHistoryPage()),
+-    ),
+-  ],
+-);
++        ],
++      ),
++
++      GoRoute(
++        path: '/accident-report',
++        parentNavigatorKey: _rootNavigatorKey,
++        pageBuilder: (context, state) =>
++            _slideTransition(state: state, child: const AccidentReportPage()),
++      ),
++      GoRoute(
++        path: '/camera',
++        parentNavigatorKey: _rootNavigatorKey,
++        pageBuilder: (context, state) => _slideTransition(
++          state: state,
++          child: CameraScreen(camera: state.extra as CameraDescription),
++        ),
++      ),
++      GoRoute(
++        path: '/gallery',
++        parentNavigatorKey: _rootNavigatorKey,
++        pageBuilder: (context, state) {
++          final extra = state.extra as Map<String, dynamic>;
++          return _slideTransition(
++            state: state,
++            child: FullScreenImageGallery(
++              imageUrls: extra['imageUrls'] as List<String>,
++              initialIndex: extra['initialIndex'] as int,
++            ),
++          );
++        },
++      ),
++      GoRoute(
++        path: '/report-history',
++        parentNavigatorKey: _rootNavigatorKey,
++        pageBuilder: (context, state) =>
++            _slideTransition(state: state, child: const ReportHistoryPage()),
++      ),
++    ],
++  );
++}
+diff --git a/lib/core/presentation/layouts/root_screen.dart b/lib/core/presentation/layouts/root_screen.dart
+index c7bab86..1ce224f 100644
+--- a/lib/core/presentation/layouts/root_screen.dart
++++ b/lib/core/presentation/layouts/root_screen.dart
+@@ -4,15 +4,25 @@ import 'package:google_nav_bar/google_nav_bar.dart';
+ import 'package:go_router/go_router.dart';
+ 
+ class RootScreen extends StatelessWidget {
+-  final StatefulNavigationShell navigationShell;
++  final Widget child;
+ 
+-  const RootScreen({super.key, required this.navigationShell});
++  const RootScreen({super.key, required this.child});
++
++  int _calculateSelectedIndex(BuildContext context) {
++    final String location = GoRouterState.of(context).matchedLocation;
++    if (location.startsWith('/home')) return 0;
++    if (location.startsWith('/maps')) return 1;
++    if (location.startsWith('/profile')) return 2;
++    return 0;
++  }
+ 
+   @override
+   Widget build(BuildContext context) {
++    final selectedIndex = _calculateSelectedIndex(context);
++
+     return ConnectivityBanner(
+       child: Scaffold(
+-        body: navigationShell,
++        body: child,
+         bottomNavigationBar: Container(
+           decoration: BoxDecoration(
+             color: Colors.white,
+@@ -47,12 +57,19 @@ class RootScreen extends StatelessWidget {
+                   GButton(icon: Icons.map, text: 'Maps'),
+                   GButton(icon: Icons.person, text: 'Profile'),
+                 ],
+-                selectedIndex: navigationShell.currentIndex,
++                selectedIndex: selectedIndex,
+                 onTabChange: (index) {
+-                  navigationShell.goBranch(
+-                    index,
+-                    initialLocation: index == navigationShell.currentIndex,
+-                  );
++                  switch (index) {
++                    case 0:
++                      context.go('/home');
++                      break;
++                    case 1:
++                      context.go('/maps');
++                      break;
++                    case 2:
++                      context.go('/profile');
++                      break;
++                  }
+                 },
+               ),
+             ),
+diff --git a/lib/features/auth/presentation/pages/sign_in_page.dart b/lib/features/auth/presentation/pages/sign_in_page.dart
+index 11cd658..9ab9538 100644
+--- a/lib/features/auth/presentation/pages/sign_in_page.dart
++++ b/lib/features/auth/presentation/pages/sign_in_page.dart
+@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
+ import '../../data/models/user_model.dart';
+ import '../../bloc/session_bloc.dart';
+ import '../../bloc/session_event.dart';
++import '../../bloc/session_state.dart';
+ import '../../bloc/signin_bloc.dart';
+ import '../../bloc/signin_event.dart';
+ import '../../bloc/signin_state.dart';
+@@ -68,7 +69,6 @@ class _SignInPageState extends State<SignInPage> {
+       RefreshReports(userId: user.id),
+     );
+     context.read<SessionBloc>().add(AuthLoggedIn(user));
+-    context.go('/maps');
+   }
+ 
+   void _showPhoneModal(BuildContext context, SigninState state) {
+@@ -91,403 +91,275 @@ class _SignInPageState extends State<SignInPage> {
+     return Scaffold(
+       backgroundColor: Colors.white,
+       body: SafeArea(
+-        child: BlocListener<SigninBloc, SigninState>(
++        child: BlocListener<SessionBloc, SessionState>(
+           listenWhen: (previous, current) {
+-            return previous.status != current.status ||
+-                previous.googleSignInStatus != current.googleSignInStatus;
++            return previous.runtimeType != current.runtimeType ||
++                (current is AuthAuthenticated &&
++                    previous is! AuthAuthenticated);
+           },
+           listener: (context, state) {
+-            final isSuccess =
+-                state.status == SigninStatus.success ||
+-                state.googleSignInStatus == GoogleSignInStatus.success;
++            if (state is AuthAuthenticated) {
++              context.go('/maps');
++            }
++          },
++          child: BlocListener<SigninBloc, SigninState>(
++            listenWhen: (previous, current) {
++              return previous.status != current.status ||
++                  previous.googleSignInStatus != current.googleSignInStatus;
++            },
++            listener: (context, state) {
++              final isSuccess =
++                  state.status == SigninStatus.success ||
++                  state.googleSignInStatus == GoogleSignInStatus.success;
+ 
+-            final isFailure =
+-                state.status == SigninStatus.failure ||
+-                state.googleSignInStatus == GoogleSignInStatus.failure;
++              final isFailure =
++                  state.status == SigninStatus.failure ||
++                  state.googleSignInStatus == GoogleSignInStatus.failure;
+ 
+-            if (isSuccess && state.user != null) {
+-              _emailController.clear();
+-              _passwordController.clear();
+-              if (state.hasPhoneNumber) {
+-                _navigateToHome(context, state.user as UserModel);
+-              } else {
+-                _showPhoneModal(context, state);
+-              }
+-            } else if (isFailure) {
 -              ScaffoldMessenger.of(context).showSnackBar(
 -                SnackBar(
--                  content: Text(
--                    'Share Report - Coming Soon',
--                    style: GoogleFonts.inter(),
--                  ),
--                  backgroundColor: Colors.grey[700],
+-                  content: Row(
+-                    children: [
+-                      const Icon(Icons.error_outline, color: Colors.white),
+-                      const SizedBox(width: 12),
+-                      Expanded(
+-                        child: Text(
+-                          state.errorMessage ?? 'Sign in failed',
+-                          style: GoogleFonts.inter(),
++              if (isSuccess && state.user != null) {
++                _emailController.clear();
++                _passwordController.clear();
++                if (state.hasPhoneNumber) {
++                  _navigateToHome(context, state.user as UserModel);
++                } else {
++                  _showPhoneModal(context, state);
++                }
++              } else if (isFailure) {
++                ScaffoldMessenger.of(context).showSnackBar(
++                  SnackBar(
++                    content: Row(
++                      children: [
++                        const Icon(Icons.error_outline, color: Colors.white),
++                        const SizedBox(width: 12),
++                        Expanded(
++                          child: Text(
++                            state.errorMessage ?? 'Sign in failed',
++                            style: GoogleFonts.inter(),
++                          ),
+                         ),
+-                      ),
+-                    ],
++                      ],
++                    ),
++                    backgroundColor: Colors.red[700],
++                    behavior: SnackBarBehavior.floating,
++                    shape: RoundedRectangleBorder(
++                      borderRadius: BorderRadius.circular(12),
++                    ),
+                   ),
+-                  backgroundColor: Colors.red[700],
 -                  behavior: SnackBarBehavior.floating,
 -                  shape: RoundedRectangleBorder(
--                    borderRadius: BorderRadius.circular(10),
+-                    borderRadius: BorderRadius.circular(12),
 -                  ),
 -                ),
 -              );
--            },
--            icon: Icon(Icons.share, size: 20, color: Colors.grey[700]),
--            label: Text(
--              'Share Report',
--              style: GoogleFonts.poppins(
--                fontSize: 15,
--                fontWeight: FontWeight.w600,
--                color: Colors.grey[700],
+-            }
+-          },
+-          child: CustomScrollView(
+-            slivers: [
+-              SliverFillRemaining(
+-                hasScrollBody: false,
+-                child: Padding(
+-                  padding: const EdgeInsets.all(24.0),
+-                  child: Column(
+-                    children: [
+-                      const SizedBox(height: 20),
+-                      Container(
+-                            padding: const EdgeInsets.all(24),
+-                            decoration: BoxDecoration(
+-                              gradient: LinearGradient(
+-                                begin: Alignment.topLeft,
+-                                end: Alignment.bottomRight,
+-                                colors: [Colors.red[700]!, Colors.red[900]!],
+-                              ),
+-                              shape: BoxShape.circle,
+-                              boxShadow: [
+-                                BoxShadow(
+-                                  color: Colors.red.withValues(alpha: 0.3),
+-                                  blurRadius: 20,
+-                                  offset: const Offset(0, 10),
+-                                ),
+-                              ],
+-                            ),
+-                            child: const Icon(
+-                              Icons.remove_red_eye,
+-                              size: 70,
+-                              color: Colors.white,
+-                            ),
+-                          )
+-                          .animate()
+-                          .scale(duration: 600.ms, curve: Curves.easeOut)
+-                          .shimmer(delay: 600.ms, duration: 1000.ms),
+-                      const SizedBox(height: 32),
+-                      Text(
+-                        'Welcome Back',
+-                        style: GoogleFonts.poppins(
+-                          fontSize: 32,
+-                          fontWeight: FontWeight.bold,
+-                          color: Colors.grey[800],
+-                        ),
+-                      ).animate().fadeIn(delay: 200.ms).slideY(),
+-                      const SizedBox(height: 8),
+-                      Text(
+-                        'Sign in to report emergencies and stay connected',
+-                        textAlign: TextAlign.center,
+-                        style: GoogleFonts.inter(
+-                          fontSize: 15,
+-                          color: Colors.grey[600],
+-                          height: 1.5,
+-                        ),
+-                      ).animate().fadeIn(delay: 300.ms).slideY(),
+-                      const SizedBox(height: 48),
+-                      BlocBuilder<SigninBloc, SigninState>(
+-                        buildWhen: (previous, current) =>
+-                            previous.email != current.email,
+-                        builder: (context, state) {
+-                          return TextFormField(
+-                            controller: _emailController,
+-                            keyboardType: TextInputType.emailAddress,
+-                            textInputAction: TextInputAction.next,
+-                            autocorrect: false,
+-                            style: GoogleFonts.inter(fontSize: 15),
+-                            decoration: InputDecoration(
+-                              labelText: 'Email Address',
+-                              labelStyle: GoogleFonts.inter(),
+-                              hintText: 'juan@example.com',
+-                              hintStyle: GoogleFonts.inter(
+-                                color: Colors.grey[400],
+-                              ),
+-                              prefixIcon: Icon(
+-                                Icons.email_outlined,
+-                                color: Colors.red[700],
+-                              ),
+-                              errorText: state.email.displayError != null
+-                                  ? _getEmailErrorText(state.email.error)
+-                                  : null,
+-                              errorStyle: GoogleFonts.inter(fontSize: 12),
+-                              border: OutlineInputBorder(
+-                                borderRadius: BorderRadius.circular(16),
+-                                borderSide: BorderSide(
+-                                  color: Colors.grey[300]!,
+-                                ),
+-                              ),
+-                              enabledBorder: OutlineInputBorder(
+-                                borderRadius: BorderRadius.circular(16),
+-                                borderSide: BorderSide(
+-                                  color: Colors.grey[300]!,
+-                                ),
+-                              ),
+-                              focusedBorder: OutlineInputBorder(
+-                                borderRadius: BorderRadius.circular(16),
+-                                borderSide: BorderSide(
+-                                  color: Colors.red[700]!,
+-                                  width: 2,
+-                                ),
+-                              ),
+-                              errorBorder: OutlineInputBorder(
+-                                borderRadius: BorderRadius.circular(16),
+-                                borderSide: BorderSide(color: Colors.red[700]!),
+-                              ),
+-                              filled: true,
+-                              fillColor: Colors.grey[50],
+-                              contentPadding: const EdgeInsets.symmetric(
+-                                horizontal: 16,
+-                                vertical: 18,
+-                              ),
+-                            ),
+-                            onChanged: (value) {
+-                              context.read<SigninBloc>().add(
+-                                SigninEmailChanged(value),
+-                              );
+-                            },
+-                          );
+-                        },
+-                      ).animate().fadeIn(delay: 400.ms).slideX(),
+-                      const SizedBox(height: 20),
+-                      BlocBuilder<SigninBloc, SigninState>(
+-                        buildWhen: (previous, current) =>
+-                            previous.password != current.password,
+-                        builder: (context, state) {
+-                          return TextFormField(
+-                            controller: _passwordController,
+-                            obscureText: !_isPasswordVisible,
+-                            textInputAction: TextInputAction.done,
+-                            style: GoogleFonts.inter(fontSize: 15),
+-                            decoration: InputDecoration(
+-                              labelText: 'Password',
+-                              labelStyle: GoogleFonts.inter(),
+-                              hintText: 'Enter your password',
+-                              hintStyle: GoogleFonts.inter(
+-                                color: Colors.grey[400],
+-                              ),
+-                              prefixIcon: Icon(
+-                                Icons.lock_outline,
+-                                color: Colors.red[700],
+-                              ),
+-                              suffixIcon: IconButton(
+-                                icon: Icon(
+-                                  _isPasswordVisible
+-                                      ? Icons.visibility_off_outlined
+-                                      : Icons.visibility_outlined,
+-                                  color: Colors.grey[600],
+-                                ),
+-                                onPressed: () {
+-                                  setState(() {
+-                                    _isPasswordVisible = !_isPasswordVisible;
+-                                  });
+-                                },
+-                              ),
+-                              errorText: state.password.displayError != null
+-                                  ? _getPasswordErrorText(state.password.error)
+-                                  : null,
+-                              errorStyle: GoogleFonts.inter(fontSize: 12),
+-                              border: OutlineInputBorder(
+-                                borderRadius: BorderRadius.circular(16),
+-                                borderSide: BorderSide(
+-                                  color: Colors.grey[300]!,
+-                                ),
+-                              ),
+-                              enabledBorder: OutlineInputBorder(
+-                                borderRadius: BorderRadius.circular(16),
+-                                borderSide: BorderSide(
+-                                  color: Colors.grey[300]!,
+-                                ),
+-                              ),
+-                              focusedBorder: OutlineInputBorder(
+-                                borderRadius: BorderRadius.circular(16),
+-                                borderSide: BorderSide(
+-                                  color: Colors.red[700]!,
+-                                  width: 2,
++                );
++              }
++            },
++            child: CustomScrollView(
++              slivers: [
++                SliverFillRemaining(
++                  hasScrollBody: false,
++                  child: Padding(
++                    padding: const EdgeInsets.all(24.0),
++                    child: Column(
++                      children: [
++                        const SizedBox(height: 20),
++                        Container(
++                              padding: const EdgeInsets.all(24),
++                              decoration: BoxDecoration(
++                                gradient: LinearGradient(
++                                  begin: Alignment.topLeft,
++                                  end: Alignment.bottomRight,
++                                  colors: [Colors.red[700]!, Colors.red[900]!],
+                                 ),
++                                shape: BoxShape.circle,
++                                boxShadow: [
++                                  BoxShadow(
++                                    color: Colors.red.withValues(alpha: 0.3),
++                                    blurRadius: 20,
++                                    offset: const Offset(0, 10),
++                                  ),
++                                ],
+                               ),
+-                              errorBorder: OutlineInputBorder(
+-                                borderRadius: BorderRadius.circular(16),
+-                                borderSide: BorderSide(color: Colors.red[700]!),
++                              child: const Icon(
++                                Icons.remove_red_eye,
++                                size: 70,
++                                color: Colors.white,
+                               ),
+-                              filled: true,
+-                              fillColor: Colors.grey[50],
+-                              contentPadding: const EdgeInsets.symmetric(
+-                                horizontal: 16,
+-                                vertical: 18,
++                            )
++                            .animate()
++                            .scale(duration: 600.ms, curve: Curves.easeOut)
++                            .shimmer(delay: 600.ms, duration: 1000.ms),
++                        const SizedBox(height: 32),
++                        Text(
++                          'Welcome Back',
++                          style: GoogleFonts.poppins(
++                            fontSize: 32,
++                            fontWeight: FontWeight.bold,
++                            color: Colors.grey[800],
++                          ),
++                        ).animate().fadeIn(delay: 200.ms).slideY(),
++                        const SizedBox(height: 8),
++                        Text(
++                          'Sign in to report emergencies and stay connected',
++                          textAlign: TextAlign.center,
++                          style: GoogleFonts.inter(
++                            fontSize: 15,
++                            color: Colors.grey[600],
++                            height: 1.5,
++                          ),
++                        ).animate().fadeIn(delay: 300.ms).slideY(),
++                        const SizedBox(height: 48),
++
++                        // Email Field
++                        BlocBuilder<SigninBloc, SigninState>(
++                          buildWhen: (previous, current) =>
++                              previous.email != current.email,
++                          builder: (context, state) {
++                            return TextFormField(
++                              controller: _emailController,
++                              keyboardType: TextInputType.emailAddress,
++                              textInputAction: TextInputAction.next,
++                              autocorrect: false,
++                              style: GoogleFonts.inter(fontSize: 15),
++                              decoration: InputDecoration(
++                                labelText: 'Email Address',
++                                prefixIcon: const Icon(Icons.email_outlined),
++                                errorText: state.email.displayError != null
++                                    ? _getEmailErrorText(state.email.error)
++                                    : null,
+                               ),
+-                            ),
+-                            onChanged: (value) {
+-                              context.read<SigninBloc>().add(
+-                                SigninPasswordChanged(value),
+-                              );
+-                            },
+-                            onFieldSubmitted: (value) {
+-                              if (context.read<SigninBloc>().state.isValid) {
+-                                context.read<SigninBloc>().add(
+-                                  SigninSubmitted(),
+-                                );
+-                              }
+-                            },
+-                          );
+-                        },
+-                      ).animate().fadeIn(delay: 500.ms).slideX(),
+-                      const SizedBox(height: 12),
+-                      Align(
+-                        alignment: Alignment.centerRight,
+-                        child: TextButton(
+-                          onPressed: () {
+-                            ScaffoldMessenger.of(context).showSnackBar(
+-                              SnackBar(
+-                                content: Text(
+-                                  'Forgot password feature coming soon!',
+-                                  style: GoogleFonts.inter(),
+-                                ),
+-                                backgroundColor: Colors.blue[700],
+-                                behavior: SnackBarBehavior.floating,
+-                                shape: RoundedRectangleBorder(
+-                                  borderRadius: BorderRadius.circular(12),
++                              onChanged: (value) => context
++                                  .read<SigninBloc>()
++                                  .add(SigninEmailChanged(value)),
++                            );
++                          },
++                        ).animate().fadeIn(delay: 400.ms).slideX(),
++
++                        const SizedBox(height: 20),
++
++                        // Password Field
++                        BlocBuilder<SigninBloc, SigninState>(
++                          buildWhen: (previous, current) =>
++                              previous.password != current.password,
++                          builder: (context, state) {
++                            return TextFormField(
++                              controller: _passwordController,
++                              obscureText: !_isPasswordVisible,
++                              textInputAction: TextInputAction.done,
++                              style: GoogleFonts.inter(fontSize: 15),
++                              decoration: InputDecoration(
++                                labelText: 'Password',
++                                prefixIcon: const Icon(Icons.lock_outline),
++                                suffixIcon: IconButton(
++                                  icon: Icon(
++                                    _isPasswordVisible
++                                        ? Icons.visibility_off
++                                        : Icons.visibility,
++                                  ),
++                                  onPressed: () => setState(
++                                    () => _isPasswordVisible =
++                                        !_isPasswordVisible,
++                                  ),
+                                 ),
++                                errorText: state.password.displayError != null
++                                    ? _getPasswordErrorText(
++                                        state.password.error,
++                                      )
++                                    : null,
+                               ),
++                              onChanged: (value) => context
++                                  .read<SigninBloc>()
++                                  .add(SigninPasswordChanged(value)),
+                             );
+                           },
+-                          child: Text(
+-                            'Forgot Password?',
+-                            style: GoogleFonts.inter(
+-                              color: Colors.red[700],
+-                              fontWeight: FontWeight.w600,
+-                              fontSize: 14,
++                        ).animate().fadeIn(delay: 500.ms).slideX(),
++
++                        const SizedBox(height: 12),
++                        Align(
++                          alignment: Alignment.centerRight,
++                          child: TextButton(
++                            onPressed: () {}, // Forgot password logic
++                            child: Text(
++                              'Forgot Password?',
++                              style: TextStyle(color: Colors.red[700]),
+                             ),
+                           ),
+-                        ),
+-                      ).animate().fadeIn(delay: 600.ms),
+-                      const SizedBox(height: 24),
+-                      BlocBuilder<SigninBloc, SigninState>(
+-                        buildWhen: (previous, current) =>
+-                            previous.status != current.status ||
+-                            previous.isValid != current.isValid,
+-                        builder: (context, state) {
+-                          return Container(
+-                            width: double.infinity,
+-                            height: 56,
+-                            decoration: BoxDecoration(
+-                              borderRadius: BorderRadius.circular(16),
+-                              gradient: state.isValid
+-                                  ? LinearGradient(
+-                                      colors: [
+-                                        Colors.red[700]!,
+-                                        Colors.red[900]!,
+-                                      ],
+-                                    )
+-                                  : null,
+-                              boxShadow: state.isValid
+-                                  ? [
+-                                      BoxShadow(
+-                                        color: Colors.red.withValues(
+-                                          alpha: 0.3,
+-                                        ),
+-                                        blurRadius: 12,
+-                                        offset: const Offset(0, 6),
+-                                      ),
+-                                    ]
+-                                  : null,
+-                            ),
+-                            child: ElevatedButton(
+-                              onPressed: state.status == SigninStatus.loading
+-                                  ? null
+-                                  : state.isValid
+-                                  ? () {
+-                                      FocusScope.of(context).unfocus();
+-                                      context.read<SigninBloc>().add(
++                        ).animate().fadeIn(delay: 600.ms),
++
++                        const SizedBox(height: 24),
++
++                        // Submit Button
++                        BlocBuilder<SigninBloc, SigninState>(
++                          builder: (context, state) {
++                            return SizedBox(
++                              width: double.infinity,
++                              height: 56,
++                              child: ElevatedButton(
++                                onPressed:
++                                    state.isValid &&
++                                        state.status != SigninStatus.loading
++                                    ? () => context.read<SigninBloc>().add(
+                                         SigninSubmitted(),
+-                                      );
+-                                    }
+-                                  : null,
+-                              style: ElevatedButton.styleFrom(
+-                                backgroundColor: state.isValid
+-                                    ? Colors.transparent
+-                                    : Colors.grey[300],
+-                                foregroundColor: Colors.white,
+-                                shadowColor: Colors.transparent,
+-                                shape: RoundedRectangleBorder(
+-                                  borderRadius: BorderRadius.circular(16),
++                                      )
++                                    : null,
++                                style: ElevatedButton.styleFrom(
++                                  backgroundColor: state.isValid
++                                      ? null // Use theme color
++                                      : Colors.grey[300],
+                                 ),
+-                                elevation: 0,
++                                child: state.status == SigninStatus.loading
++                                    ? const SizedBox(
++                                        height: 20,
++                                        width: 20,
++                                        child: CircularProgressIndicator(
++                                          strokeWidth: 2,
++                                          color: Colors.white,
++                                        ),
++                                      )
++                                    : const Text('Sign In'),
+                               ),
+-                              child: state.status == SigninStatus.loading
+-                                  ? const SizedBox(
+-                                      height: 24,
+-                                      width: 24,
+-                                      child: CircularProgressIndicator(
+-                                        strokeWidth: 2.5,
+-                                        valueColor:
+-                                            AlwaysStoppedAnimation<Color>(
+-                                              Colors.white,
+-                                            ),
+-                                      ),
+-                                    )
+-                                  : Text(
+-                                      'Sign In',
+-                                      style: GoogleFonts.poppins(
+-                                        fontSize: 16,
+-                                        fontWeight: FontWeight.bold,
+-                                      ),
+-                                    ),
+-                            ),
+-                          );
+-                        },
+-                      ).animate().fadeIn(delay: 700.ms).slideY(),
+-                      const SizedBox(height: 24),
+-                      const OAuthDivider().animate().fadeIn(delay: 750.ms),
+-                      const SizedBox(height: 24),
+-                      BlocBuilder<SigninBloc, SigninState>(
+-                        builder: (context, state) {
+-                          return GoogleSignInButton(
+-                            onPressed: _handleGoogleSignIn,
+-                            isLoading:
+-                                state.googleSignInStatus ==
+-                                GoogleSignInStatus.loading,
+-                          );
+-                        },
+-                      ).animate().fadeIn(delay: 800.ms).slideX(),
+-                      const Spacer(),
+-                      Row(
+-                        mainAxisAlignment: MainAxisAlignment.center,
+-                        children: [
+-                          Text(
+-                            "Don't have an account?",
+-                            style: GoogleFonts.inter(
+-                              fontSize: 15,
+-                              color: Colors.grey[600],
++                            );
++                          },
++                        ).animate().fadeIn(delay: 700.ms).slideY(),
++
++                        const SizedBox(height: 24),
++                        const OAuthDivider().animate().fadeIn(delay: 750.ms),
++                        const SizedBox(height: 24),
++
++                        // Google Sign In
++                        BlocBuilder<SigninBloc, SigninState>(
++                          builder: (context, state) {
++                            return GoogleSignInButton(
++                              onPressed: _handleGoogleSignIn,
++                              isLoading:
++                                  state.googleSignInStatus ==
++                                  GoogleSignInStatus.loading,
++                            );
++                          },
++                        ).animate().fadeIn(delay: 800.ms).slideX(),
++
++                        const Spacer(),
++
++                        Row(
++                          mainAxisAlignment: MainAxisAlignment.center,
++                          children: [
++                            Text(
++                              "Don't have an account?",
++                              style: TextStyle(color: Colors.grey[600]),
+                             ),
+-                          ),
+-                          TextButton(
+-                            onPressed: () {
+-                              context.push('/signup');
+-                            },
+-                            child: Text(
+-                              'Sign Up',
+-                              style: GoogleFonts.inter(
+-                                fontWeight: FontWeight.bold,
+-                                fontSize: 15,
+-                                color: Colors.red[700],
++                            TextButton(
++                              onPressed: () => context.push('/signup'),
++                              child: Text(
++                                'Sign Up',
++                                style: TextStyle(
++                                  color: Colors.red[700],
++                                  fontWeight: FontWeight.bold,
++                                ),
+                               ),
+                             ),
+-                          ),
+-                        ],
+-                      ).animate().fadeIn(delay: 900.ms),
+-                      const SizedBox(height: 20),
+-                    ],
++                          ],
++                        ).animate().fadeIn(delay: 900.ms),
++                        const SizedBox(height: 20),
++                      ],
++                    ),
+                   ),
+                 ),
 -              ),
--            ),
--            style: OutlinedButton.styleFrom(
--              padding: const EdgeInsets.symmetric(vertical: 16),
--              side: BorderSide(color: Colors.grey[300]!, width: 1.5),
--              shape: RoundedRectangleBorder(
--                borderRadius: BorderRadius.circular(12),
--              ),
--            ),
--          ),
--        ),
--      ],
-+    // Standard Google Maps URL for web/iOS/Android
-+    final googleMapsUrl = Uri.parse(
-+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
-     );
-+
-+    // Apple Maps URL
-+    final appleMapsUrl = Uri.parse('https://maps.apple.com/?q=$lat,$lng');
-+
-+    // Android "geo" scheme (direct to map apps)
-+    final geoUrl = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
-+
-+    try {
-+      // 1. Try Android geo scheme first if on Android
-+      if (Theme.of(context).platform == TargetPlatform.android) {
-+        if (await canLaunchUrl(geoUrl)) {
-+          await launchUrl(geoUrl);
-+          return;
-+        }
-+      }
-+
-+      // 2. Try specialized app URLs (Google Maps / Apple Maps)
-+      if (await canLaunchUrl(googleMapsUrl)) {
-+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-+      } else if (await canLaunchUrl(appleMapsUrl)) {
-+        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
-+      } else {
-+        // 3. Fallback: Launch in browser if no map apps are found (common on emulators)
-+        await launchUrl(googleMapsUrl, mode: LaunchMode.platformDefault);
-+      }
-+    } catch (e) {
-+      if (mounted) {
-+        ScaffoldMessenger.of(
-+          context,
-+        ).showSnackBar(SnackBar(content: Text('Error opening map: $e')));
-+      }
-+    }
-   }
- 
-   String _formatDateTime(DateTime dateTime) {
-diff --git a/lib/features/profile/presentation/pages/report_history_page.dart b/lib/features/profile/presentation/pages/report_history_page.dart
-index cf2144d..01c48ec 100644
---- a/lib/features/profile/presentation/pages/report_history_page.dart
-+++ b/lib/features/profile/presentation/pages/report_history_page.dart
-@@ -76,8 +76,6 @@ class _ReportHistoryPageState extends State<ReportHistoryPage> {
-       context.read<AccidentsReportLoadBloc>().add(
-         RefreshReports(userId: sessionState.userId),
-       );
--      // Wait for the state to update (optional, Bloc usually handles this)
--      await Future.delayed(const Duration(milliseconds: 500));
-     }
-   }
- 
-@@ -101,6 +99,8 @@ class _ReportHistoryPageState extends State<ReportHistoryPage> {
-           severity: report.severity,
-           accidentStatus: report.accidentStatus,
-           updatedAt: report.updatedAt,
-+          latitude: report.latitude,
-+          longitude: report.longitude,
+-            ],
++              ],
++            ),
+           ),
          ),
        ),
-     );
-diff --git a/pubspec.lock b/pubspec.lock
-index 87f89d8..119b1e3 100644
---- a/pubspec.lock
-+++ b/pubspec.lock
-@@ -1366,7 +1366,7 @@ packages:
-     source: hosted
-     version: "2.3.1"
-   url_launcher:
--    dependency: transitive
-+    dependency: "direct main"
-     description:
-       name: url_launcher
-       sha256: f6a7e5c4835bb4e3026a04793a4199ca2d14c739ec378fdfe23fc8075d0439f8
-diff --git a/pubspec.yaml b/pubspec.yaml
-index da8dbe0..88b380c 100644
---- a/pubspec.yaml
-+++ b/pubspec.yaml
-@@ -66,6 +66,7 @@ dependencies:
-   internet_connection_checker_plus: ^2.9.1+2
-   http: ^1.6.0
-   go_router: ^17.1.0
-+  url_launcher: ^6.3.2
- 
- dev_dependencies:
-   flutter_test:
+diff --git a/lib/features/auth/presentation/pages/sign_up_page.dart b/lib/features/auth/presentation/pages/sign_up_page.dart
+index 3355733..4045e27 100644
+--- a/lib/features/auth/presentation/pages/sign_up_page.dart
++++ b/lib/features/auth/presentation/pages/sign_up_page.dart
+@@ -469,10 +469,10 @@ class _SignUpPageState extends State<SignUpPage> {
+                               ),
+                               child: state.status == SignupStatus.loading
+                                   ? const SizedBox(
+-                                      height: 24,
+-                                      width: 24,
++                                      height: 20,
++                                      width: 20,
+                                       child: CircularProgressIndicator(
+-                                        strokeWidth: 2.5,
++                                        strokeWidth: 2,
+                                         valueColor:
+                                             AlwaysStoppedAnimation<Color>(
+                                               Colors.white,
+@@ -564,37 +564,11 @@ class _SignUpPageState extends State<SignUpPage> {
+       style: GoogleFonts.inter(fontSize: 15),
+       decoration: InputDecoration(
+         labelText: label,
+-        labelStyle: GoogleFonts.inter(),
+         hintText: hint,
+-        hintStyle: GoogleFonts.inter(color: Colors.grey[400]),
+         helperText: helperText,
+-        helperStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey[600]),
+-        prefixIcon: Icon(icon, color: Colors.red[700]),
++        prefixIcon: Icon(icon),
+         suffixIcon: suffixIcon,
+         errorText: errorText,
+-        errorStyle: GoogleFonts.inter(fontSize: 12),
+-        border: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(16),
+-          borderSide: BorderSide(color: Colors.grey[300]!),
+-        ),
+-        enabledBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(16),
+-          borderSide: BorderSide(color: Colors.grey[300]!),
+-        ),
+-        focusedBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(16),
+-          borderSide: BorderSide(color: Colors.red[700]!, width: 2),
+-        ),
+-        errorBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(16),
+-          borderSide: BorderSide(color: Colors.red[700]!),
+-        ),
+-        filled: true,
+-        fillColor: Colors.grey[50],
+-        contentPadding: const EdgeInsets.symmetric(
+-          horizontal: 16,
+-          vertical: 18,
+-        ),
+       ),
+       onChanged: onChanged,
+       onFieldSubmitted: onFieldSubmitted,
+diff --git a/lib/features/auth/presentation/widgets/oauth_widget.dart b/lib/features/auth/presentation/widgets/oauth_widget.dart
+index 4f6abc7..4d1de32 100644
+--- a/lib/features/auth/presentation/widgets/oauth_widget.dart
++++ b/lib/features/auth/presentation/widgets/oauth_widget.dart
+@@ -42,12 +42,12 @@ class GoogleSignInButton extends StatelessWidget {
+           padding: const EdgeInsets.symmetric(horizontal: 16),
+         ),
+         child: isLoading
+-            ? SizedBox(
+-                height: 24,
+-                width: 24,
++            ? const SizedBox(
++                height: 20,
++                width: 20,
+                 child: CircularProgressIndicator(
+-                  strokeWidth: 2.5,
+-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[800]!),
++                  strokeWidth: 2,
++                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                 ),
+               )
+             : Row(
+diff --git a/lib/features/profile/presentation/widgets/logout_dialog.dart b/lib/features/profile/presentation/widgets/logout_dialog.dart
+index bd7a7c5..4a1f67c 100644
+--- a/lib/features/profile/presentation/widgets/logout_dialog.dart
++++ b/lib/features/profile/presentation/widgets/logout_dialog.dart
+@@ -55,7 +55,6 @@ class LogoutDialog extends StatelessWidget {
+             context.pop();
+             context.read<SigninBloc>().add(const SigninResetState());
+             context.read<SessionBloc>().add(AuthLoggedOut());
+-            context.go('/signin');
+           },
+           style: ElevatedButton.styleFrom(
+             backgroundColor: Colors.red[700],

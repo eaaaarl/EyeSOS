@@ -55,7 +55,6 @@ class LogoutDialog extends StatelessWidget {
             context.pop();
             context.read<SigninBloc>().add(const SigninResetState());
             context.read<SessionBloc>().add(AuthLoggedOut());
-            context.go('/signin');
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red[700],

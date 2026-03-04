@@ -469,10 +469,10 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                               child: state.status == SignupStatus.loading
                                   ? const SizedBox(
-                                      height: 24,
-                                      width: 24,
+                                      height: 20,
+                                      width: 20,
                                       child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
+                                        strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
                                               Colors.white,
@@ -564,37 +564,11 @@ class _SignUpPageState extends State<SignUpPage> {
       style: GoogleFonts.inter(fontSize: 15),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.inter(),
         hintText: hint,
-        hintStyle: GoogleFonts.inter(color: Colors.grey[400]),
         helperText: helperText,
-        helperStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey[600]),
-        prefixIcon: Icon(icon, color: Colors.red[700]),
+        prefixIcon: Icon(icon),
         suffixIcon: suffixIcon,
         errorText: errorText,
-        errorStyle: GoogleFonts.inter(fontSize: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.red[700]!, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.red[700]!),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 18,
-        ),
       ),
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
