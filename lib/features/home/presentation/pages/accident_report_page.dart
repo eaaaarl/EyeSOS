@@ -787,11 +787,9 @@ class _AccidentReportPageState extends State<AccidentReportPage> {
         },
         decoration: InputDecoration(
           hintText:
-              'Describe what happened...\n\nExample: Two-car collision at the intersection. No injuries reported.',
+              'Describe what happened... (Optional)\n\nExample: Two-car collision at the intersection. No injuries reported.',
           hintStyle: GoogleFonts.inter(color: Colors.grey[400], fontSize: 14),
-          errorText: state.description.displayError != null
-              ? 'Min 10 characters required'
-              : null,
+          errorText: state.description.errorMessage,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,

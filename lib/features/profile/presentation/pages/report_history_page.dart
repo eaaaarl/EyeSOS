@@ -76,8 +76,6 @@ class _ReportHistoryPageState extends State<ReportHistoryPage> {
       context.read<AccidentsReportLoadBloc>().add(
         RefreshReports(userId: sessionState.userId),
       );
-      // Wait for the state to update (optional, Bloc usually handles this)
-      await Future.delayed(const Duration(milliseconds: 500));
     }
   }
 
@@ -101,6 +99,8 @@ class _ReportHistoryPageState extends State<ReportHistoryPage> {
           severity: report.severity,
           accidentStatus: report.accidentStatus,
           updatedAt: report.updatedAt,
+          latitude: report.latitude,
+          longitude: report.longitude,
         ),
       ),
     );
