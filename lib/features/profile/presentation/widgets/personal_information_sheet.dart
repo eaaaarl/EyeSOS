@@ -2,7 +2,6 @@ import 'package:eyesos/features/auth/bloc/session_bloc.dart';
 import 'package:eyesos/features/auth/bloc/session_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -82,10 +81,6 @@ class PersonalInformationSheet extends StatelessWidget {
                           ],
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => context.pop(),
-                        icon: Icon(Icons.close, color: Colors.grey[600]),
-                      ),
                     ],
                   ),
                 ).animate().fadeIn().slideY(begin: -0.2),
@@ -96,11 +91,6 @@ class PersonalInformationSheet extends StatelessWidget {
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
                   child: Column(
                     children: [
                       // Avatar

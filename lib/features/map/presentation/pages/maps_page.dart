@@ -58,12 +58,20 @@ class _MapsTableViewState extends State<MapsTableView>
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   };
 
+  late final LocationBloc _locationBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _locationBloc = context.read<LocationBloc>();
+  }
+
   @override
   bool get wantKeepAlive => true;
 
   @override
   void dispose() {
-    context.read<LocationBloc>().add(StopLocationTracking());
+    _locationBloc.add(StopLocationTracking());
     _mapController.dispose();
     super.dispose();
   }
