@@ -156,34 +156,11 @@ class _SignInPageState extends State<SignInPage> {
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       children: [
-                        const SizedBox(height: 20),
-                        Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [Colors.red[700]!, Colors.red[900]!],
-                                ),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.red.withValues(alpha: 0.3),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.remove_red_eye,
-                                size: 70,
-                                color: Colors.white,
-                              ),
-                            )
+                        Image.asset('assets/images/logo_login.png', height: 80)
                             .animate()
                             .scale(duration: 600.ms, curve: Curves.easeOut)
                             .shimmer(delay: 600.ms, duration: 1000.ms),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 16),
                         Text(
                           'Welcome Back',
                           style: GoogleFonts.poppins(

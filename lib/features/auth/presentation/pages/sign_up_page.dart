@@ -106,14 +106,14 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
+      /* appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: Colors.grey[800]),
           onPressed: () => context.pop(),
         ),
-      ),
+      ), */
       body: SafeArea(
         child: BlocListener<SignupBloc, SignupState>(
           listenWhen: (previous, current) => previous.status != current.status,
@@ -165,34 +165,17 @@ class _SignUpPageState extends State<SignUpPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Center(
-                            child: Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [Colors.red[700]!, Colors.red[900]!],
-                                ),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.red.withValues(alpha: 0.3),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.remove_red_eye,
-                                size: 50,
-                                color: Colors.white,
-                              ),
-                            ),
-                          )
-                          .animate()
-                          .scale(duration: 600.ms, curve: Curves.easeOut)
-                          .shimmer(delay: 600.ms, duration: 1000.ms),
-                      const SizedBox(height: 32),
+                        child:
+                            Image.asset(
+                                  'assets/images/logo_login.png',
+                                  height: 80,
+                                )
+                                .animate()
+                                .scale(duration: 600.ms, curve: Curves.easeOut)
+                                .shimmer(delay: 600.ms, duration: 1000.ms),
+                      ),
+
+                      const SizedBox(height: 16),
                       Text(
                         'Create Account',
                         style: GoogleFonts.poppins(

@@ -104,28 +104,40 @@ GoRouter createRouter(SessionBloc sessionBloc) {
       GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
       GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
 
-      ShellRoute(
-        builder: (context, state, child) {
-          return RootScreen(child: child);
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return RootScreen(navigationShell: navigationShell);
         },
-        routes: [
-          GoRoute(
-            path: '/home',
-            pageBuilder: (context, state) {
-              return const NoTransitionPage(child: HomePage());
-            },
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(child: HomePage());
+                },
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/maps',
-            pageBuilder: (context, state) {
-              return const NoTransitionPage(child: MapsPage());
-            },
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/maps',
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(child: MapsPage());
+                },
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/profile',
-            pageBuilder: (context, state) {
-              return const NoTransitionPage(child: ProfilePage());
-            },
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(child: ProfilePage());
+                },
+              ),
+            ],
           ),
         ],
       ),
