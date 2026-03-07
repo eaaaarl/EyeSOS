@@ -21,16 +21,21 @@ import 'package:eyesos/features/home/data/repositories/accident_repository_impl.
 import 'package:eyesos/features/home/data/datasources/accident_remote_datasource.dart';
 import 'package:eyesos/features/home/domain/usecases/load_recent_reports_usecase.dart';
 import 'package:eyesos/features/home/domain/usecases/send_report_accident_usecase.dart';
+import 'package:eyesos/features/map/bloc/accidents_bloc.dart';
 import 'package:eyesos/features/map/bloc/location_bloc.dart';
 import 'package:eyesos/features/map/bloc/map_bloc.dart';
 import 'package:eyesos/features/map/bloc/road_risk_bloc.dart';
 import 'package:eyesos/features/map/bloc/road_risk_event.dart';
+import 'package:eyesos/features/map/data/datasources/accidents_remote_datasource.dart';
 import 'package:eyesos/features/map/data/datasources/map_remote_datasource.dart';
 import 'package:eyesos/features/map/data/datasources/route_remote_datasource.dart';
+import 'package:eyesos/features/map/data/repositories/accidents_repositories_impl.dart';
 import 'package:eyesos/features/map/data/repositories/map_repositories_impl.dart';
 import 'package:eyesos/features/map/data/repositories/route_repository_impl.dart';
+import 'package:eyesos/features/map/domain/repositories/i_accidents_repository.dart';
 import 'package:eyesos/features/map/domain/repositories/i_map_repository.dart';
 import 'package:eyesos/features/map/domain/repositories/i_route_repository.dart';
+import 'package:eyesos/features/map/domain/usecases/fetch_accidents_usecase.dart';
 import 'package:eyesos/features/map/domain/usecases/fetch_roads_usecases.dart';
 import 'package:eyesos/features/map/domain/usecases/fetch_route_usecase.dart';
 import 'package:eyesos/features/map/domain/usecases/search_places_usecase.dart';
@@ -57,6 +62,10 @@ class AppProviders extends StatelessWidget {
         ),
         RepositoryProvider<IRouteRepository>(
           create: (context) => RouteRepositoryImpl(RouteRemoteDatasource()),
+        ),
+        RepositoryProvider<IAccidentsRepository>(
+          create: (context) =>
+              AccidentsRepositoriesImpl(AccidentsRemoteDataSource()),
         ),
       ],
       child: MultiBlocProvider(
@@ -124,6 +133,14 @@ class AppProviders extends StatelessWidget {
               return RouteSearchBloc(
                 searchPlacesUseCase: SearchPlacesUseCase(repo),
                 fetchRouteUseCase: FetchRouteUseCase(repo),
+              );
+            },
+          ),
+          BlocProvider(
+            create: (context) {
+              final repo = context.read<IAccidentsRepository>();
+              return AccidentsBloc(
+                fetchAccidentsUsecase: FetchAccidentsUsecase(repo),
               );
             },
           ),

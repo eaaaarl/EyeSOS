@@ -1,6 +1,5 @@
 import 'package:eyesos/features/map/bloc/location_state.dart';
 import 'package:eyesos/features/map/bloc/map_bloc.dart';
-import 'package:eyesos/features/map/bloc/map_event.dart';
 import 'package:eyesos/features/map/bloc/map_state.dart';
 import 'package:eyesos/features/map/presentation/widgets/control_button.dart';
 import 'package:eyesos/features/map/presentation/widgets/location_time_badge.dart';
@@ -39,7 +38,7 @@ class MapControlButtons extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
               ],
-              ControlButton(
+              /*  ControlButton(
                 icon: mapState.showRoadRisk
                     ? Icons.visibility
                     : Icons.visibility_off,
@@ -48,15 +47,15 @@ class MapControlButtons extends StatelessWidget {
                     : 'Show Danger Roads',
                 onPressed: () => context.read<MapBloc>().add(ToggleRoads()),
                 iconColor: Colors.red[700],
-              ),
-              const SizedBox(height: 10),
+              ), */
+              /*    const SizedBox(height: 10),
               if (!mapState.showLegend)
                 ControlButton(
                   icon: Icons.legend_toggle,
                   tooltip: 'Show Legend',
                   onPressed: () => context.read<MapBloc>().add(ToggleLegend()),
                   iconColor: Colors.red[700],
-                ),
+                ), */
               const SizedBox(height: 10),
               ControlButton(
                 icon: Icons.add,

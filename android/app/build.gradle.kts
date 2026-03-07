@@ -1,4 +1,5 @@
-
+import java.text.SimpleDateFormat
+import java.util.Date
 
 plugins {
     id("com.android.application")
@@ -39,6 +40,21 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    applicationVariants.all {
+    val variant = this
+
+    val date = SimpleDateFormat("yyyy-MM-dd").format(Date())
+
+    variant.outputs
+        .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+        .forEach { output ->
+            val outputFileName =
+                "EyeSOS-${variant.baseName}-v${variant.versionName}(${variant.versionCode})-$date.apk"
+
+            output.outputFileName = outputFileName
+        }
+}
 }
 
 flutter {

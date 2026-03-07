@@ -1,54 +1,52 @@
 import 'package:equatable/equatable.dart';
-import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart';
+import 'package:eyesos/core/domain/entities/accident_entity.dart';
 
 abstract class AccidentsReportsLoadState extends Equatable {
+  const AccidentsReportsLoadState();
+
   @override
   List<Object?> get props => [];
 }
 
-class RecentReportLoadsInitial extends AccidentsReportsLoadState {
-  RecentReportLoadsInitial();
-
-  @override
-  List<Object> get props => [];
-}
+class RecentReportLoadsInitial extends AccidentsReportsLoadState {}
 
 class RecentReportsLoadLoading extends AccidentsReportsLoadState {}
 
 class RecentReportsLoaded extends AccidentsReportsLoadState {
-  final List<AccidentReportEntity> reports;
-  final bool isLoadingMore;
+  final List<AccidentEntity> reports;
   final bool hasMore;
+  final bool isLoadingMore;
   final int currentPage;
 
-  RecentReportsLoaded({
+  const RecentReportsLoaded({
     required this.reports,
+    required this.hasMore,
     this.isLoadingMore = false,
-    this.hasMore = true,
     this.currentPage = 1,
   });
 
+  @override
+  List<Object?> get props => [reports, hasMore, isLoadingMore, currentPage];
+
   RecentReportsLoaded copyWith({
-    List<AccidentReportEntity>? reports,
-    bool? isLoadingMore,
+    List<AccidentEntity>? reports,
     bool? hasMore,
+    bool? isLoadingMore,
     int? currentPage,
   }) {
     return RecentReportsLoaded(
       reports: reports ?? this.reports,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       currentPage: currentPage ?? this.currentPage,
     );
   }
-
-  @override
-  List<Object?> get props => [reports, isLoadingMore, hasMore, currentPage];
 }
 
 class RecentReportsError extends AccidentsReportsLoadState {
   final String message;
-  RecentReportsError(this.message);
+
+  const RecentReportsError(this.message);
 
   @override
   List<Object?> get props => [message];

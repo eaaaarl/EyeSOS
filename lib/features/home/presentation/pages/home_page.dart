@@ -3,7 +3,7 @@ import 'package:eyesos/features/auth/bloc/session_state.dart';
 import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
 import 'package:eyesos/features/home/bloc/accidents_reports_load_state.dart';
-import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart';
+import 'package:eyesos/core/domain/entities/accident_entity.dart';
 import 'package:eyesos/features/home/presentation/widgets/emergency_button_section.dart';
 import 'package:eyesos/features/home/presentation/widgets/guest_notice_banner.dart';
 import 'package:eyesos/features/home/presentation/widgets/guest_signin_card.dart';
@@ -74,7 +74,7 @@ class _HomeTabState extends State<HomePage> {
 
   void _showReportDetails({
     required BuildContext context,
-    required AccidentReportEntity report,
+    required AccidentEntity report,
   }) {
     showModalBottomSheet(
       context: context,

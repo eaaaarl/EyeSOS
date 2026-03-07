@@ -1,7 +1,6 @@
 import 'dart:io';
-
+import 'package:eyesos/core/domain/entities/accident_entity.dart';
 import 'package:eyesos/features/home/data/datasources/accident_remote_datasource.dart';
-import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart';
 import 'package:eyesos/features/home/domain/repositories/i_accident_repository.dart';
 
 class AccidentRepositoryImpl implements IAccidentRepository {
@@ -49,7 +48,7 @@ class AccidentRepositoryImpl implements IAccidentRepository {
   }
 
   @override
-  Future<List<AccidentReportEntity>> getRecentReports({
+  Future<List<AccidentEntity>> getRecentReports({
     required String userId,
     int page = 1,
     int pageSize = 5,

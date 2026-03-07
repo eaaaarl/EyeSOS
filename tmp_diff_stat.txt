@@ -1,0 +1,19 @@
+ .metadata                                          |  15 -
+ android/app/build.gradle.kts                       |  18 +-
+ lib/app_providers.dart                             |  17 +
+ lib/features/auth/bloc/signin_bloc.dart            |   7 +-
+ .../data/datasources/auth_remote_datasource.dart   |  87 ++++-
+ .../home/bloc/accidents_reports_load_state.dart    |  34 +-
+ .../home/data/models/accident_report_model.dart    |   6 +-
+ .../repositories/accident_repository_impl.dart     |   5 +-
+ .../domain/repositories/i_accident_repository.dart |   5 +-
+ .../usecases/load_recent_reports_usecase.dart      |   4 +-
+ .../home/presentation/pages/home_page.dart         |   4 +-
+ .../widgets/recent_reports_section.dart            |   4 +-
+ .../presentation/widgets/report_details_modal.dart |   2 +-
+ .../presentation/widgets/report_item_card.dart     |   2 +-
+ .../data/repositories/route_repository_impl.dart   |  91 +----
+ lib/features/map/presentation/pages/maps_page.dart | 416 +++++++++++----------
+ .../presentation/widgets/map_control_buttons.dart  |   9 +-
+ .../presentation/pages/report_history_page.dart    |   4 +-
+ 18 files changed, 362 insertions(+), 368 deletions(-)

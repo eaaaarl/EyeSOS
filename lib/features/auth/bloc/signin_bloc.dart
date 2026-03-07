@@ -78,7 +78,7 @@ class SigninBloc extends Bloc<SigninEvent, SigninState> {
       emit(
         state.copyWith(
           status: SigninStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: e.toString().replaceFirst('Exception: ', ''),
         ),
       );
     }
@@ -115,7 +115,10 @@ class SigninBloc extends Bloc<SigninEvent, SigninState> {
       emit(
         state.copyWith(
           googleSignInStatus: GoogleSignInStatus.failure,
-          googleSignInErrorMessage: e.toString(),
+          googleSignInErrorMessage: e.toString().replaceFirst(
+            'Exception: ',
+            '',
+          ),
         ),
       );
     }

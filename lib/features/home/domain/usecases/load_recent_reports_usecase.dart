@@ -1,4 +1,4 @@
-import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart';
+import 'package:eyesos/core/domain/entities/accident_entity.dart';
 import 'package:eyesos/features/home/domain/repositories/i_accident_repository.dart';
 
 class LoadRecentReportsUsecase {
@@ -6,7 +6,7 @@ class LoadRecentReportsUsecase {
 
   LoadRecentReportsUsecase({required this.repository});
 
-  Future<List<AccidentReportEntity>> call({
+  Future<List<AccidentEntity>> call({
     required String userId,
     int page = 1,
     int pageSize = 5,
