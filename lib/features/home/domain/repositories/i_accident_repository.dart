@@ -1,9 +1,8 @@
 import 'dart:io';
-
-import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart';
+import 'package:eyesos/core/domain/entities/accident_entity.dart';
 
 abstract class IAccidentRepository {
-  Future<List<AccidentReportEntity>> getRecentReports({
+  Future<List<AccidentEntity>> getRecentReports({
     required String userId,
     int page,
     int pageSize,

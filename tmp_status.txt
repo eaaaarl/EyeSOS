@@ -1,0 +1,39 @@
+On branch dev
+Your branch is up to date with 'origin/dev'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .metadata
+	modified:   android/app/build.gradle.kts
+	modified:   lib/app_providers.dart
+	modified:   lib/features/auth/bloc/signin_bloc.dart
+	modified:   lib/features/auth/data/datasources/auth_remote_datasource.dart
+	modified:   lib/features/home/bloc/accidents_reports_load_state.dart
+	modified:   lib/features/home/data/models/accident_report_model.dart
+	modified:   lib/features/home/data/repositories/accident_repository_impl.dart
+	modified:   lib/features/home/domain/repositories/i_accident_repository.dart
+	modified:   lib/features/home/domain/usecases/load_recent_reports_usecase.dart
+	modified:   lib/features/home/presentation/pages/home_page.dart
+	modified:   lib/features/home/presentation/widgets/recent_reports_section.dart
+	modified:   lib/features/home/presentation/widgets/report_details_modal.dart
+	modified:   lib/features/home/presentation/widgets/report_item_card.dart
+	modified:   lib/features/map/data/repositories/route_repository_impl.dart
+	modified:   lib/features/map/presentation/pages/maps_page.dart
+	modified:   lib/features/map/presentation/widgets/map_control_buttons.dart
+	modified:   lib/features/profile/presentation/pages/report_history_page.dart
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	lib/core/domain/
+	lib/features/map/bloc/accidents_bloc.dart
+	lib/features/map/data/datasources/accidents_remote_datasource.dart
+	lib/features/map/data/models/accident_model.dart
+	lib/features/map/data/repositories/accidents_repositories_impl.dart
+	lib/features/map/domain/repositories/i_accidents_repository.dart
+	lib/features/map/domain/usecases/fetch_accidents_usecase.dart
+	lib/features/map/presentation/widgets/accident_marker.dart
+	lib/features/map/presentation/widgets/map_accident_bottom_sheet.dart
+	tmp_status.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")

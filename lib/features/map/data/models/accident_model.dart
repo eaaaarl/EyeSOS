@@ -1,8 +1,8 @@
 import 'package:eyesos/core/domain/entities/accident_entity.dart';
 import 'package:eyesos/core/domain/entities/accident_status.dart';
 
-class AccidentReportModel extends AccidentEntity {
-  AccidentReportModel({
+class AccidentModel extends AccidentEntity {
+  AccidentModel({
     required super.id,
     required super.createdAt,
     required super.reportNumber,
@@ -18,26 +18,23 @@ class AccidentReportModel extends AccidentEntity {
     super.updatedAt,
   });
 
-  factory AccidentReportModel.fromJson(Map<String, dynamic> json) {
+  factory AccidentModel.fromJson(Map<String, dynamic> json) {
     final imageList =
         (json['accident_images'] as List<dynamic>?)
             ?.map((e) => e['url'] as String)
             .toList() ??
         [];
 
-    return AccidentReportModel(
+    return AccidentModel(
       id: json['id'],
-      // Parse the ISO8601 string from Supabase
       createdAt: DateTime.parse(json['created_at']),
       reportNumber: json['report_number'] ?? 'N/A',
       severity: json['severity'] ?? 'unknown',
       reporterName: json['reporter_name'] ?? 'Anonymous',
       reporterNotes: json['reporter_notes'],
-      // Supabase numbers can come back as int or double, .toDouble() is safer
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       locationAddress: json['location_address'] ?? 'Unknown Location',
-      // Convert the dynamic list to a List<String>
       imageUrls: imageList,
       isSos: json['sos_type'] ?? false,
       accidentStatus: AccidentStatus.fromString(
@@ -47,5 +44,22 @@ class AccidentReportModel extends AccidentEntity {
           ? DateTime.parse(json['updated_at'])
           : null,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'created_at': createdAt.toIso8601String(),
+      'report_number': reportNumber,
+      'severity': severity,
+      'reporter_name': reporterName,
+      'reporter_notes': reporterNotes,
+      'latitude': latitude,
+      'longitude': longitude,
+      'location_address': locationAddress,
+      'sos_type': isSos,
+      'accident_status': accidentStatus.toJson(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
   }
 }

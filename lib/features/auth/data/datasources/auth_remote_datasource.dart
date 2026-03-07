@@ -23,13 +23,29 @@ class AuthRemoteDatasource {
       throw Exception('Signup failed: No user returned');
     }
 
-    await _supabase.from('profiles').insert({
-      'id': response.user!.id,
-      'name': name,
-      'email': email,
-      'mobileNo': phoneNumber,
-      'user_type': 'bystander',
-    });
+    // Check if profile already exists
+    final existingProfile = await _supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', response.user!.id)
+        .maybeSingle();
+
+    if (existingProfile != null) {
+      // Existing profile — must be bystander
+      if (existingProfile['user_type'] != 'bystander') {
+        await _supabase.auth.signOut();
+        throw Exception('Invalid credentials');
+      }
+    } else {
+      // New user — insert as bystander
+      await _supabase.from('profiles').insert({
+        'id': response.user!.id,
+        'name': name,
+        'email': email,
+        'mobileNo': phoneNumber,
+        'user_type': 'bystander',
+      });
+    }
 
     return getCurrentUser(response.user!.id);
   }
@@ -44,8 +60,21 @@ class AuthRemoteDatasource {
     );
 
     if (response.user == null) {
-      throw Exception('Email and Password invalid');
+      throw Exception('Invalid credentials');
     }
+
+    // Check if user is a bystander
+    final profile = await _supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', response.user!.id)
+        .single();
+
+    if (profile['user_type'] != 'bystander') {
+      await _supabase.auth.signOut();
+      throw Exception('Invalid credentials');
+    }
+
     return getCurrentUser(response.user!.id);
   }
 
@@ -73,16 +102,42 @@ class AuthRemoteDatasource {
     );
 
     if (response.user == null) {
-      throw Exception('Google Sign In invalid');
+      throw Exception('Invalid credentials');
     }
 
-    await _supabase.from('profiles').upsert({
-      'id': response.user!.id,
-      'name': googleUser.displayName,
-      'email': googleUser.email,
-      'user_type': 'bystander',
-      'avatarUrl': googleUser.photoUrl,
-    });
+    // Check if profile already exists
+    final existingProfile = await _supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', response.user!.id)
+        .maybeSingle();
+
+    if (existingProfile != null) {
+      // Existing user — must be a bystander
+      if (existingProfile['user_type'] != 'bystander') {
+        await _supabase.auth.signOut();
+        await _googleSignIn.signOut();
+        throw Exception('Invalid credentials');
+      }
+      // Update non-sensitive fields only (preserve user_type)
+      await _supabase
+          .from('profiles')
+          .update({
+            'name': googleUser.displayName,
+            'email': googleUser.email,
+            'avatarUrl': googleUser.photoUrl,
+          })
+          .eq('id', response.user!.id);
+    } else {
+      // New user — insert as bystander
+      await _supabase.from('profiles').insert({
+        'id': response.user!.id,
+        'name': googleUser.displayName,
+        'email': googleUser.email,
+        'user_type': 'bystander',
+        'avatarUrl': googleUser.photoUrl,
+      });
+    }
 
     return await getCurrentUser(response.user!.id);
   }

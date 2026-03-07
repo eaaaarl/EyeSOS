@@ -3,7 +3,7 @@ import 'package:eyesos/features/auth/bloc/session_state.dart';
 import 'package:eyesos/features/home/bloc/accidents_report_load_bloc.dart';
 import 'package:eyesos/features/home/bloc/accidents_reports_load_event.dart';
 import 'package:eyesos/features/home/bloc/accidents_reports_load_state.dart';
-import 'package:eyesos/features/home/domain/entities/accident_report_entity.dart';
+import 'package:eyesos/core/domain/entities/accident_entity.dart';
 import 'package:eyesos/features/home/presentation/widgets/report_item_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +13,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class RecentReportsSection extends StatelessWidget {
-  final Function(AccidentReportEntity) onReportTap;
+  final Function(AccidentEntity) onReportTap;
   const RecentReportsSection({super.key, required this.onReportTap});
 
   @override
